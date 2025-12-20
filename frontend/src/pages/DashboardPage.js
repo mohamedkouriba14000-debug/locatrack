@@ -115,7 +115,7 @@ const DashboardPage = () => {
   return (
     <Layout>
       <div data-testid="dashboard-page">
-        <h1 className="font-heading font-black text-4xl mb-8 uppercase tracking-tight" data-testid="dashboard-title">
+        <h1 className="font-heading font-bold text-4xl mb-8 uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-500" data-testid="dashboard-title">
           {t('dashboard')}
         </h1>
         
@@ -123,17 +123,17 @@ const DashboardPage = () => {
           {visibleStats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.testId} className="border-slate-200 hover:shadow-md transition-all" data-testid={stat.testId}>
+              <Card key={stat.testId} className="glass border-slate-800/50 hover:border-cyan-500/50 transition-all group" data-testid={stat.testId}>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-slate-600">
+                  <CardTitle className="text-sm font-medium text-slate-400 uppercase tracking-wide">
                     {stat.title}
                   </CardTitle>
-                  <div className={`${stat.color} p-2 rounded-sm`}>
+                  <div className={`p-3 rounded-lg bg-gradient-to-br ${stat.color} opacity-80 group-hover:opacity-100 transition-opacity`}>
                     <Icon className="text-white" size={20} />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-black tracking-tight" data-testid={`${stat.testId}-value`}>
+                  <div className="text-3xl font-bold tracking-tight text-slate-100 font-heading" data-testid={`${stat.testId}-value`}>
                     {stat.value}
                   </div>
                 </CardContent>
@@ -144,26 +144,26 @@ const DashboardPage = () => {
         
         {user?.role !== 'client' && (
           <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card data-testid="quick-actions-card">
+            <Card className="glass border-slate-800/50" data-testid="quick-actions-card">
               <CardHeader>
-                <CardTitle className="font-heading text-xl uppercase">
+                <CardTitle className="font-heading text-xl uppercase text-cyan-400">
                   {language === 'fr' ? 'Actions rapides' : 'إجراءات سريعة'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="p-4 bg-slate-50 rounded-sm hover:bg-slate-100 cursor-pointer transition-all" data-testid="quick-action-vehicle">
-                    <p className="font-medium">
+                  <div className="p-4 glass rounded-lg hover:border-cyan-500/50 border border-transparent cursor-pointer transition-all" data-testid="quick-action-vehicle">
+                    <p className="font-medium text-slate-300">
                       {language === 'fr' ? 'Ajouter un véhicule' : 'إضافة مركبة'}
                     </p>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-sm hover:bg-slate-100 cursor-pointer transition-all" data-testid="quick-action-reservation">
-                    <p className="font-medium">
+                  <div className="p-4 glass rounded-lg hover:border-cyan-500/50 border border-transparent cursor-pointer transition-all" data-testid="quick-action-reservation">
+                    <p className="font-medium text-slate-300">
                       {language === 'fr' ? 'Nouvelle réservation' : 'حجز جديد'}
                     </p>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-sm hover:bg-slate-100 cursor-pointer transition-all" data-testid="quick-action-contract">
-                    <p className="font-medium">
+                  <div className="p-4 glass rounded-lg hover:border-cyan-500/50 border border-transparent cursor-pointer transition-all" data-testid="quick-action-contract">
+                    <p className="font-medium text-slate-300">
                       {language === 'fr' ? 'Créer un contrat' : 'إنشاء عقد'}
                     </p>
                   </div>
@@ -171,9 +171,9 @@ const DashboardPage = () => {
               </CardContent>
             </Card>
             
-            <Card data-testid="recent-activity-card">
+            <Card className="glass border-slate-800/50" data-testid="recent-activity-card">
               <CardHeader>
-                <CardTitle className="font-heading text-xl uppercase">
+                <CardTitle className="font-heading text-xl uppercase text-violet-400">
                   {language === 'fr' ? 'Activité récente' : 'النشاط الأخير'}
                 </CardTitle>
               </CardHeader>
