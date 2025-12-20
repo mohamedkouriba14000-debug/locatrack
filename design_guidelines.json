@@ -1,0 +1,171 @@
+{
+  "identity": {
+    "persona": "E1",
+    "philosophy": "Fusion over Imitation. Emotion First. Content is King.",
+    "anti_patterns": [
+      "No purple/teal gradients for CTAs",
+      "No 'Inter' font for headings",
+      "No centered layouts for data-heavy views",
+      "No generic 'Bootstrap' columns"
+    ]
+  },
+  "typography": {
+    "primary_font": "IBM Plex Sans",
+    "heading_font": "Chivo",
+    "arabic_font": "IBM Plex Sans Arabic",
+    "serif_font": "Merriweather",
+    "weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "bold": 700,
+      "black": 900
+    },
+    "usage": {
+      "headings": "font-heading font-black tracking-tight uppercase",
+      "body": "font-sans text-slate-600 dark:text-slate-300 leading-relaxed",
+      "data": "font-mono text-sm tracking-wide",
+      "legal_contracts": "font-serif text-slate-900 leading-loose"
+    }
+  },
+  "colors": {
+    "palette_name": "Asphalt & Gold",
+    "mode": "hybrid",
+    "primary": {
+      "name": "Asphalt",
+      "hex": "#0F172A",
+      "tailwind": "slate-900",
+      "usage": "Sidebar, Headers, Primary Text"
+    },
+    "secondary": {
+      "name": "Daylight",
+      "hex": "#F8FAFC",
+      "tailwind": "slate-50",
+      "usage": "Backgrounds, Cards"
+    },
+    "accent": {
+      "name": "Signal Amber",
+      "hex": "#F59E0B",
+      "tailwind": "amber-500",
+      "usage": "Alerts, CTAs, Status Indicators"
+    },
+    "brand": {
+      "name": "Corporate Blue",
+      "hex": "#2563EB",
+      "tailwind": "blue-600",
+      "usage": "Links, Primary Buttons, Active States"
+    },
+    "success": {
+      "name": "Emerald",
+      "hex": "#10B981",
+      "tailwind": "emerald-500",
+      "usage": "Available Status, Profit"
+    },
+    "danger": {
+      "name": "Redline",
+      "hex": "#EF4444",
+      "tailwind": "red-500",
+      "usage": "Overdue, Accidents, Errors"
+    }
+  },
+  "layout": {
+    "spacing_scale": "Generous (p-6, p-8, p-12)",
+    "grid_systems": {
+      "dashboard": {
+        "name": "Control Room Grid",
+        "structure": "grid-cols-1 md:grid-cols-4 gap-4",
+        "rules": "Dense, no gaps, 100% height utilization"
+      },
+      "marketing": {
+        "name": "Tetris Grid",
+        "structure": "grid-cols-12 gap-8",
+        "rules": "Asymmetrical, negative space, overlapping elements"
+      }
+    },
+    "containers": {
+      "card": "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-sm hover:shadow-md transition-all duration-200",
+      "panel": "bg-slate-50 dark:bg-slate-950 p-6 rounded-lg"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-sm shadow-lg shadow-blue-600/20 transition-transform active:scale-95",
+      "secondary": "bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-medium py-3 px-6 rounded-sm",
+      "danger": "bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-sm"
+    },
+    "inputs": {
+      "default": "bg-white border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-sm h-12 px-4",
+      "search": "pl-10 bg-slate-50 border-transparent focus:bg-white transition-colors"
+    },
+    "status_badges": {
+      "active": "bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
+      "pending": "bg-amber-100 text-amber-700 border border-amber-200 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
+      "error": "bg-red-100 text-red-700 border border-red-200 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-white/80 border-b border-white/20",
+    "shadows": "shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
+    "gradients": "No full screen gradients. Use subtle mesh gradients in headers only.",
+    "textures": "Use subtle noise texture on dark backgrounds to prevent banding."
+  },
+  "images": {
+    "fleet": [
+      {
+        "url": "https://images.pexels.com/photos/14848422/pexels-photo-14848422.jpeg",
+        "alt": "Luxury White Sedan Studio",
+        "category": "sedan"
+      },
+      {
+        "url": "https://images.pexels.com/photos/30795598/pexels-photo-30795598.jpeg",
+        "alt": "SUV Side View",
+        "category": "suv"
+      }
+    ],
+    "operations": [
+      {
+        "url": "https://images.pexels.com/photos/28535657/pexels-photo-28535657.jpeg",
+        "alt": "GPS Tracking Interface",
+        "category": "dashboard_bg"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1708745427274-d5de5122fd57?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBtZWNoYW5pYyUyMGNoZWNraW5nJTIwY2FyJTIwZW5naW5lfGVufDB8fHx8MTc2NjI1MjEwNXww&ixlib=rb-4.1.0&q=85",
+        "alt": "Mechanic Checking Engine",
+        "category": "maintenance"
+      },
+      {
+        "url": "https://images.pexels.com/photos/4393427/pexels-photo-4393427.jpeg",
+        "alt": "Payment Terminal",
+        "category": "payment"
+      }
+    ]
+  },
+  "instructions_to_main_agent": {
+    "bilingual_strategy": {
+      "rule": "The app must support dynamic language switching (Arabic/French).",
+      "implementation": "Use a global context for language. When Arabic is selected, set <html dir='rtl'>. Use Tailwind logical properties (ms-*, me-*, ps-*, pe-*) instead of left/right where possible.",
+      "fonts": "Switch font-family based on language: 'IBM Plex Sans Arabic' for Arabic, 'IBM Plex Sans' for French."
+    },
+    "gps_integration": {
+      "url": "https://tracking.gps-14.net",
+      "method": "Embed via iframe in the 'Fleet Tracking' module. Ensure the iframe is responsive and has a fallback loading state."
+    },
+    "contracts": {
+      "style": "Legal documents must look like paper. Use a white container with a subtle drop shadow, serif font, and high contrast text. The digital signature field should be prominent."
+    },
+    "dashboard": {
+      "layout": "Use the 'Control Room' grid. High density. Dark mode map widget. Key metrics (Revenue, Active Cars, Alerts) at the top."
+    },
+    "tech_stack_specifics": {
+      "components": "Use the existing Shadcn components in /components/ui. They are .jsx files. Customize them via Tailwind classes, do not rewrite the logic unless necessary.",
+      "icons": "Use lucide-react (default) or @phosphor-icons/react for a more technical look."
+    }
+  },
+  "universal_guidelines": [
+    "Do not use 'Inter' for headings.",
+    "Do not use purple/teal gradients.",
+    "Always use data-testid attributes.",
+    "Use 2-3x more spacing than typical designs.",
+    "Every interaction needs a micro-animation."
+  ]
+}
