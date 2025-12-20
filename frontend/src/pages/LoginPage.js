@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Languages } from 'lucide-react';
+import { Languages, ArrowRight, Car } from 'lucide-react';
 import { toast } from 'sonner';
 
 const LoginPage = () => {
@@ -46,8 +46,15 @@ const LoginPage = () => {
     <div className="min-h-screen bg-slate-950 grid-bg flex items-center justify-center p-4 relative overflow-hidden" data-testid="login-page">
       {/* Animated background elements */}
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-20 start-20 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 end-20 w-96 h-96 bg-violet-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-20 start-20 w-96 h-96 bg-cyan-500/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 end-20 w-96 h-96 bg-violet-500/30 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+      </div>
+      
+      {/* Floating particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 start-1/4 w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{animationDuration: '3s'}}></div>
+        <div className="absolute top-1/3 end-1/3 w-2 h-2 bg-violet-400 rounded-full animate-ping" style={{animationDuration: '4s', animationDelay: '1s'}}></div>
+        <div className="absolute bottom-1/4 start-1/2 w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{animationDuration: '5s', animationDelay: '2s'}}></div>
       </div>
       
       <div className="absolute top-4 end-4 z-10">
@@ -56,32 +63,50 @@ const LoginPage = () => {
           variant="outline"
           size="sm"
           data-testid="language-toggle-btn"
-          className="glass border-slate-700 text-cyan-400 hover:border-cyan-500 hover:bg-cyan-500/10"
+          className="glass border-slate-700 text-cyan-400 hover:border-cyan-500 hover:bg-cyan-500/10 font-medium"
         >
           <Languages size={18} className="me-2" />
           {language === 'fr' ? 'العربية' : 'Français'}
         </Button>
       </div>
       
-      <Card className="w-full max-w-md glass border-slate-800/50 relative z-10" data-testid="login-card">
-        <CardHeader className="text-center">
-          <div className="mb-4">
-            <h1 className="font-heading font-bold text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-500 uppercase tracking-tight">
-              VehicleTrack Pro
-            </h1>
-            <div className="h-1 w-32 mx-auto mt-2 bg-gradient-to-r from-cyan-400 to-violet-500 rounded-full"></div>
+      <Card className="w-full max-w-md glass border-slate-800/50 relative z-10 shadow-2xl" data-testid="login-card">
+        <CardHeader className="text-center space-y-6">
+          {/* Logo */}
+          <div className="flex justify-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-violet-500 rounded-2xl blur-xl opacity-50"></div>
+              <div className="relative bg-gradient-to-br from-cyan-500 to-violet-600 p-4 rounded-2xl">
+                <Car size={48} className="text-white" />
+              </div>
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-slate-100 font-heading" data-testid="login-title">{t('login')}</CardTitle>
-          <CardDescription className="text-slate-400" data-testid="login-description">
-            {language === 'fr' 
-              ? 'Connectez-vous à votre compte' 
-              : 'سجّل الدخول إلى حسابك'}
-          </CardDescription>
+          
+          {/* Brand Name */}
+          <div>
+            <h1 className="font-heading font-bold text-5xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-violet-400 to-cyan-400 uppercase tracking-tight animate-pulse" style={{animationDuration: '3s'}}>
+              LocaTrack
+            </h1>
+            <div className="h-1 w-40 mx-auto mt-3 bg-gradient-to-r from-transparent via-cyan-400 to-transparent rounded-full"></div>
+            <p className="text-slate-400 text-sm mt-3 tracking-wide">
+              {language === 'fr' ? 'Gestion Intelligente de Flotte' : 'إدارة ذكية للأسطول'}
+            </p>
+          </div>
+          
+          <div>
+            <CardTitle className="text-2xl font-bold text-slate-100 font-heading" data-testid="login-title">{t('login')}</CardTitle>
+            <CardDescription className="text-slate-400 mt-2" data-testid="login-description">
+              {language === 'fr' 
+                ? 'Connectez-vous à votre espace' 
+                : 'سجّل الدخول إلى حسابك'}
+            </CardDescription>
+          </div>
         </CardHeader>
+        
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300" data-testid="email-label">{t('email')}</Label>
+              <Label htmlFor="email" className="text-slate-300 font-medium" data-testid="email-label">{t('email')}</Label>
               <Input
                 id="email"
                 name="email"
@@ -90,12 +115,13 @@ const LoginPage = () => {
                 value={formData.email}
                 onChange={handleChange}
                 data-testid="email-input"
-                className="h-12 bg-slate-900/50 border-slate-700 focus:border-cyan-500 text-slate-100"
+                placeholder={language === 'fr' ? 'votre@email.com' : 'البريد الإلكتروني'}
+                className="h-12 bg-slate-900/50 border-slate-700 focus:border-cyan-500 text-slate-100 placeholder:text-slate-500"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-300" data-testid="password-label">{t('password')}</Label>
+              <Label htmlFor="password" className="text-slate-300 font-medium" data-testid="password-label">{t('password')}</Label>
               <Input
                 id="password"
                 name="password"
@@ -104,19 +130,36 @@ const LoginPage = () => {
                 value={formData.password}
                 onChange={handleChange}
                 data-testid="password-input"
-                className="h-12 bg-slate-900/50 border-slate-700 focus:border-cyan-500 text-slate-100"
+                placeholder="••••••••"
+                className="h-12 bg-slate-900/50 border-slate-700 focus:border-cyan-500 text-slate-100 placeholder:text-slate-500"
               />
             </div>
             
             <Button
               type="submit"
-              className="w-full h-12 bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-600 hover:to-violet-600 font-bold neon-border"
+              className="w-full h-12 bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-600 hover:to-violet-600 font-bold text-lg neon-border group relative overflow-hidden"
               disabled={loading}
               data-testid="login-submit-button"
             >
-              {loading ? t('loading') : t('login')}
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {loading ? t('loading') : t('login')}
+                {!loading && <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />}
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </Button>
           </form>
+          
+          {/* Demo Credentials */}
+          <div className="mt-6 p-4 bg-slate-900/50 border border-slate-800 rounded-lg">
+            <p className="text-xs text-slate-400 text-center mb-2">
+              {language === 'fr' ? 'Comptes de test' : 'حسابات تجريبية'}
+            </p>
+            <div className="space-y-1 text-xs text-slate-500">
+              <p><span className="text-cyan-400">Admin:</span> admin@vehicletrack.dz / admin123</p>
+              <p><span className="text-violet-400">Employé:</span> employee@vehicletrack.dz / employee123</p>
+              <p><span className="text-emerald-400">Client:</span> client@vehicletrack.dz / client123</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
