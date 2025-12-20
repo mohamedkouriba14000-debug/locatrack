@@ -82,6 +82,7 @@ export const translations = {
     error: 'Erreur',
     loading: 'Chargement...',
     noData: 'Aucune donnée',
+    connected: 'Connecté',
   },
   ar: {
     // Navigation
@@ -162,6 +163,7 @@ export const translations = {
     error: 'خطأ',
     loading: 'جاري التحميل...',
     noData: 'لا توجد بيانات',
+    connected: 'متصل',
   }
 };
 
