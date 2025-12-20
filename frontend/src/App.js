@@ -6,7 +6,6 @@ import { Toaster } from './components/ui/sonner';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import FleetPage from './pages/FleetPage';
-import ClientsPage from './pages/ClientsPage';
 import EmployeesPage from './pages/EmployeesPage';
 import ReservationsPage from './pages/ReservationsPage';
 import ContractsPage from './pages/ContractsPage';
@@ -39,7 +38,6 @@ const AppRoutes = () => {
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/fleet" element={<ProtectedRoute allowedRoles={['admin', 'employee']}><FleetPage /></ProtectedRoute>} />
-      <Route path="/clients" element={<ProtectedRoute allowedRoles={['admin', 'employee']}><ClientsPage /></ProtectedRoute>} />
       <Route path="/employees" element={<ProtectedRoute allowedRoles={['admin']}><EmployeesPage /></ProtectedRoute>} />
       <Route path="/reservations" element={<ProtectedRoute><ReservationsPage /></ProtectedRoute>} />
       <Route path="/contracts" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
