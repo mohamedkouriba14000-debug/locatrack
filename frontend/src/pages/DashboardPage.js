@@ -45,56 +45,56 @@ const DashboardPage = () => {
       title: t('totalVehicles'),
       value: stats?.total_vehicles || 0,
       icon: Car,
-      color: 'bg-blue-500',
+      color: 'from-cyan-500 to-cyan-600',
       testId: 'stat-total-vehicles'
     },
     {
       title: t('availableVehicles'),
       value: stats?.available_vehicles || 0,
       icon: CheckCircle,
-      color: 'bg-emerald-500',
+      color: 'from-emerald-500 to-emerald-600',
       testId: 'stat-available-vehicles'
     },
     {
       title: t('rentedVehicles'),
       value: stats?.rented_vehicles || 0,
       icon: TrendingUp,
-      color: 'bg-amber-500',
+      color: 'from-violet-500 to-violet-600',
       testId: 'stat-rented-vehicles'
     },
     {
       title: t('totalClients'),
       value: stats?.total_clients || 0,
       icon: Users,
-      color: 'bg-blue-600',
+      color: 'from-blue-500 to-blue-600',
       testId: 'stat-total-clients'
     },
     {
       title: t('activeContracts'),
       value: stats?.active_contracts || 0,
       icon: FileText,
-      color: 'bg-purple-500',
+      color: 'from-purple-500 to-purple-600',
       testId: 'stat-active-contracts'
     },
     {
       title: t('revenue30d'),
       value: `${stats?.total_revenue_30d?.toLocaleString() || 0} DZD`,
       icon: DollarSign,
-      color: 'bg-green-500',
+      color: 'from-green-500 to-green-600',
       testId: 'stat-revenue'
     },
     {
       title: t('pendingInfractions'),
       value: stats?.pending_infractions || 0,
       icon: AlertTriangle,
-      color: 'bg-red-500',
+      color: 'from-red-500 to-red-600',
       testId: 'stat-infractions'
     },
     {
       title: t('upcomingMaintenance'),
       value: stats?.upcoming_maintenance || 0,
       icon: Wrench,
-      color: 'bg-orange-500',
+      color: 'from-orange-500 to-orange-600',
       testId: 'stat-maintenance'
     },
   ];
