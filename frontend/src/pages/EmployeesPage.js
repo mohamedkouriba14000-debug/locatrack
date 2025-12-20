@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Plus, Search, UserCog, Mail, Phone, Shield, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { playSyntheticSound } from '../utils/sounds';
+import { formatApiError } from '../utils/errorHandler';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 

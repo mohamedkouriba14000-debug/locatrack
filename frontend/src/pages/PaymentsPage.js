@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Plus, CreditCard, CheckCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { playSyntheticSound } from '../utils/sounds';
+import { formatApiError } from '../utils/errorHandler';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Plus, FileText, Edit3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { playSyntheticSound } from '../utils/sounds';
+import { formatApiError } from '../utils/errorHandler';
 import SignatureCanvas from 'react-signature-canvas';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
