@@ -19,7 +19,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const DashboardPage = () => {
   const { getAuthHeaders, user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   

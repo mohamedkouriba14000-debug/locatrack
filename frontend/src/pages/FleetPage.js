@@ -16,7 +16,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const FleetPage = () => {
   const { getAuthHeaders } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [vehicles, setVehicles] = useState([]);
   const [filteredVehicles, setFilteredVehicles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
