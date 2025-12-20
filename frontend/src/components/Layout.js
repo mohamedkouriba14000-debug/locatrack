@@ -59,7 +59,7 @@ const Layout = ({ children }) => {
               <div className="bg-gradient-to-br from-cyan-500 to-violet-600 p-2 rounded-xl">
                 <Car size={28} className="text-white" />
               </div>
-              <Sparkles size={14} className="absolute -top-1 -end-1 text-yellow-400" />
+              <Sparkles size={14} className="absolute -top-1 -end-1 text-cyan-400" />
             </div>
             <div>
               <h1 className="font-heading font-bold text-xl tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-violet-600" data-testid="app-title">
