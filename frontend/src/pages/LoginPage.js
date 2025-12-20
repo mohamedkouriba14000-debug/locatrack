@@ -6,8 +6,9 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Languages, ArrowRight, Car } from 'lucide-react';
+import { Languages, ArrowRight, Car, Volume2, VolumeX } from 'lucide-react';
 import { toast } from 'sonner';
+import { playSyntheticSound } from '../utils/sounds';
 
 const LoginPage = () => {
   const { login } = useAuth();
@@ -18,17 +19,27 @@ const LoginPage = () => {
     password: ''
   });
   const [loading, setLoading] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  
+  const handlePlaySound = (type) => {
+    if (soundEnabled) {
+      playSyntheticSound(type);
+    }
+  };
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    handlePlaySound('click');
     
     const result = await login(formData.email, formData.password);
     
     if (result.success) {
+      handlePlaySound('success');
       toast.success(t('success'));
-      navigate('/dashboard');
+      setTimeout(() => navigate('/dashboard'), 300);
     } else {
+      handlePlaySound('error');
       toast.error(result.error);
     }
     
@@ -40,6 +51,18 @@ const LoginPage = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+  
+  const handleLanguageToggle = () => {
+    handlePlaySound('click');
+    toggleLanguage();
+  };
+  
+  const toggleSound = () => {
+    setSoundEnabled(!soundEnabled);
+    if (!soundEnabled) {
+      playSyntheticSound('notification');
+    }
   };
   
   return (
@@ -57,9 +80,19 @@ const LoginPage = () => {
         <div className="absolute bottom-1/4 start-1/2 w-2 h-2 bg-cyan-400 rounded-full animate-ping" style={{animationDuration: '5s', animationDelay: '2s'}}></div>
       </div>
       
-      <div className="absolute top-4 end-4 z-10">
+      {/* Top controls */}
+      <div className="absolute top-4 end-4 z-10 flex gap-2">
         <Button
-          onClick={toggleLanguage}
+          onClick={toggleSound}
+          variant="outline"
+          size="sm"
+          className="glass border-slate-700 text-cyan-400 hover:border-cyan-500 hover:bg-cyan-500/10 font-medium"
+          data-testid="sound-toggle-btn"
+        >
+          {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+        </Button>
+        <Button
+          onClick={handleLanguageToggle}
           variant="outline"
           size="sm"
           data-testid="language-toggle-btn"
@@ -88,7 +121,7 @@ const LoginPage = () => {
               LocaTrack
             </h1>
             <div className="h-1 w-40 mx-auto mt-3 bg-gradient-to-r from-transparent via-cyan-400 to-transparent rounded-full"></div>
-            <p className="text-slate-400 text-sm mt-3 tracking-wide">
+            <p className="text-slate-300 text-sm mt-3 tracking-wide font-medium">
               {language === 'fr' ? 'Gestion Intelligente de Flotte' : 'إدارة ذكية للأسطول'}
             </p>
           </div>
@@ -106,7 +139,7 @@ const LoginPage = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-300 font-medium" data-testid="email-label">{t('email')}</Label>
+              <Label htmlFor="email" className="text-slate-100 font-semibold text-sm" data-testid="email-label">{t('email')}</Label>
               <Input
                 id="email"
                 name="email"
@@ -114,6 +147,7 @@ const LoginPage = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
+                onFocus={() => handlePlaySound('click')}
                 data-testid="email-input"
                 placeholder={language === 'fr' ? 'votre@email.com' : 'البريد الإلكتروني'}
                 className="h-12 bg-slate-900/50 border-slate-700 focus:border-cyan-500 text-slate-100 placeholder:text-slate-500"
@@ -121,7 +155,7 @@ const LoginPage = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-300 font-medium" data-testid="password-label">{t('password')}</Label>
+              <Label htmlFor="password" className="text-slate-100 font-semibold text-sm" data-testid="password-label">{t('password')}</Label>
               <Input
                 id="password"
                 name="password"
@@ -129,6 +163,7 @@ const LoginPage = () => {
                 required
                 value={formData.password}
                 onChange={handleChange}
+                onFocus={() => handlePlaySound('click')}
                 data-testid="password-input"
                 placeholder="••••••••"
                 className="h-12 bg-slate-900/50 border-slate-700 focus:border-cyan-500 text-slate-100 placeholder:text-slate-500"
@@ -151,13 +186,13 @@ const LoginPage = () => {
           
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-slate-900/50 border border-slate-800 rounded-lg">
-            <p className="text-xs text-slate-400 text-center mb-2">
+            <p className="text-xs text-slate-300 text-center mb-2 font-semibold">
               {language === 'fr' ? 'Comptes de test' : 'حسابات تجريبية'}
             </p>
-            <div className="space-y-1 text-xs text-slate-500">
-              <p><span className="text-cyan-400">Admin:</span> admin@vehicletrack.dz / admin123</p>
-              <p><span className="text-violet-400">Employé:</span> employee@vehicletrack.dz / employee123</p>
-              <p><span className="text-emerald-400">Client:</span> client@vehicletrack.dz / client123</p>
+            <div className="space-y-1 text-xs text-slate-400">
+              <p><span className="text-cyan-400 font-bold">Admin:</span> admin@vehicletrack.dz / admin123</p>
+              <p><span className="text-violet-400 font-bold">Employé:</span> employee@vehicletrack.dz / employee123</p>
+              <p><span className="text-emerald-400 font-bold">Client:</span> client@vehicletrack.dz / client123</p>
             </div>
           </div>
         </CardContent>
