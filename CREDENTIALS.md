@@ -1,9 +1,6 @@
-# VehicleTrack Pro - Identifiants et Informations
+# LocaTrack - Identifiants et Informations
 
 ## Accès à l'Application / الوصول إلى التطبيق
-
-### URL de l'Application
-**Production URL:** https://algiers-rentals.preview.emergentagent.com
 
 ### Comptes de Test / حسابات الاختبار
 
@@ -11,19 +8,13 @@
 - **Email:** admin@vehicletrack.dz
 - **Password:** admin123
 - **Rôle:** Admin (Accès complet)
-- **Permissions:** Gestion complète de la flotte, clients, contrats, paiements, maintenance, infractions, rapports
+- **Permissions:** Gestion complète de la flotte, employés, contrats, paiements, maintenance, infractions, rapports
 
 #### 2. Employé / موظف
 - **Email:** employee@vehicletrack.dz  
 - **Password:** employee123
 - **Rôle:** Employee (Opérations quotidiennes)
-- **Permissions:** Gestion de la flotte, clients, réservations, contrats, paiements, maintenance, infractions
-
-#### 3. Client / عميل
-- **Email:** client@vehicletrack.dz
-- **Password:** client123
-- **Rôle:** Client (Portail client)
-- **Permissions:** Voir ses réservations, contrats, et factures
+- **Permissions:** Gestion de la flotte, réservations, contrats, paiements, maintenance, infractions
 
 ---
 
