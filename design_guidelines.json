@@ -1,171 +1,140 @@
 {
   "identity": {
     "persona": "E1",
-    "philosophy": "Fusion over Imitation. Emotion First. Content is King.",
-    "anti_patterns": [
-      "No purple/teal gradients for CTAs",
-      "No 'Inter' font for headings",
-      "No centered layouts for data-heavy views",
-      "No generic 'Bootstrap' columns"
+    "mission": "Create a top 1% futuristic car rental management platform for the Algerian market.",
+    "principles": [
+      "Fusion over Imitation: Mix Cyberpunk aesthetics with Swiss precision.",
+      "Emotion First: Evoke control, speed, and reliability.",
+      "Content is King: Data is the hero; the UI is the cockpit.",
+      "Zoom In: Focus on vehicle details and map precision.",
+      "Negative Space: Use deep dark space to let neon accents breathe.",
+      "Contrast: High contrast for readability in dark mode."
     ]
   },
   "typography": {
-    "primary_font": "IBM Plex Sans",
-    "heading_font": "Chivo",
-    "arabic_font": "IBM Plex Sans Arabic",
-    "serif_font": "Merriweather",
-    "weights": {
-      "light": 300,
-      "regular": 400,
-      "medium": 500,
-      "bold": 700,
-      "black": 900
+    "font_family": {
+      "headings": "Rajdhani, sans-serif",
+      "body": "IBM Plex Sans, sans-serif",
+      "arabic": "IBM Plex Sans Arabic, sans-serif"
     },
     "usage": {
-      "headings": "font-heading font-black tracking-tight uppercase",
-      "body": "font-sans text-slate-600 dark:text-slate-300 leading-relaxed",
-      "data": "font-mono text-sm tracking-wide",
-      "legal_contracts": "font-serif text-slate-900 leading-loose"
-    }
+      "headings": "Use 'Rajdhani' for all H1-H3. Bold, uppercase for KPIs. Tracking-tight.",
+      "body": "Use 'IBM Plex Sans' for Latin text. Use 'IBM Plex Sans Arabic' for Arabic text.",
+      "rtl_strategy": "Ensure 'IBM Plex Sans Arabic' is applied automatically when dir='rtl'."
+    },
+    "installation": "Add 'Rajdhani' from Google Fonts. 'IBM Plex Sans' and 'Arabic' are already present."
   },
   "colors": {
-    "palette_name": "Asphalt & Gold",
-    "mode": "hybrid",
-    "primary": {
-      "name": "Asphalt",
-      "hex": "#0F172A",
-      "tailwind": "slate-900",
-      "usage": "Sidebar, Headers, Primary Text"
-    },
-    "secondary": {
-      "name": "Daylight",
-      "hex": "#F8FAFC",
-      "tailwind": "slate-50",
-      "usage": "Backgrounds, Cards"
-    },
-    "accent": {
-      "name": "Signal Amber",
-      "hex": "#F59E0B",
-      "tailwind": "amber-500",
-      "usage": "Alerts, CTAs, Status Indicators"
+    "palette_name": "Neon Control Room",
+    "mode": "Dark Mode First (Futuristic)",
+    "base": {
+      "background": "#020617",
+      "foreground": "#f8fafc",
+      "card": "#0f172a",
+      "card_foreground": "#f8fafc",
+      "popover": "#0f172a",
+      "popover_foreground": "#f8fafc"
     },
     "brand": {
-      "name": "Corporate Blue",
-      "hex": "#2563EB",
-      "tailwind": "blue-600",
-      "usage": "Links, Primary Buttons, Active States"
+      "primary": "#06b6d4",
+      "primary_foreground": "#020617",
+      "secondary": "#8b5cf6",
+      "secondary_foreground": "#f8fafc",
+      "accent": "#f43f5e",
+      "accent_foreground": "#f8fafc"
     },
-    "success": {
-      "name": "Emerald",
-      "hex": "#10B981",
-      "tailwind": "emerald-500",
-      "usage": "Available Status, Profit"
+    "functional": {
+      "muted": "#1e293b",
+      "muted_foreground": "#94a3b8",
+      "border": "#1e293b",
+      "input": "#1e293b",
+      "ring": "#06b6d4"
     },
-    "danger": {
-      "name": "Redline",
-      "hex": "#EF4444",
-      "tailwind": "red-500",
-      "usage": "Overdue, Accidents, Errors"
-    }
-  },
-  "layout": {
-    "spacing_scale": "Generous (p-6, p-8, p-12)",
-    "grid_systems": {
-      "dashboard": {
-        "name": "Control Room Grid",
-        "structure": "grid-cols-1 md:grid-cols-4 gap-4",
-        "rules": "Dense, no gaps, 100% height utilization"
-      },
-      "marketing": {
-        "name": "Tetris Grid",
-        "structure": "grid-cols-12 gap-8",
-        "rules": "Asymmetrical, negative space, overlapping elements"
-      }
-    },
-    "containers": {
-      "card": "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-sm shadow-sm hover:shadow-md transition-all duration-200",
-      "panel": "bg-slate-50 dark:bg-slate-950 p-6 rounded-lg"
-    }
-  },
-  "components": {
-    "buttons": {
-      "primary": "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-sm shadow-lg shadow-blue-600/20 transition-transform active:scale-95",
-      "secondary": "bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 font-medium py-3 px-6 rounded-sm",
-      "danger": "bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-sm"
-    },
-    "inputs": {
-      "default": "bg-white border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-sm h-12 px-4",
-      "search": "pl-10 bg-slate-50 border-transparent focus:bg-white transition-colors"
-    },
-    "status_badges": {
-      "active": "bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
-      "pending": "bg-amber-100 text-amber-700 border border-amber-200 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
-      "error": "bg-red-100 text-red-700 border border-red-200 px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
+    "forbidden": [
+      "#ffff00",
+      "#facc15",
+      "#fbbf24"
+    ],
+    "gradients": {
+      "hero": "linear-gradient(to right, #06b6d4, #8b5cf6)",
+      "glass": "linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.4) 100%)"
     }
   },
   "visual_enhancers": {
-    "glassmorphism": "backdrop-blur-xl bg-white/80 border-b border-white/20",
-    "shadows": "shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
-    "gradients": "No full screen gradients. Use subtle mesh gradients in headers only.",
-    "textures": "Use subtle noise texture on dark backgrounds to prevent banding."
-  },
-  "images": {
-    "fleet": [
-      {
-        "url": "https://images.pexels.com/photos/14848422/pexels-photo-14848422.jpeg",
-        "alt": "Luxury White Sedan Studio",
-        "category": "sedan"
-      },
-      {
-        "url": "https://images.pexels.com/photos/30795598/pexels-photo-30795598.jpeg",
-        "alt": "SUV Side View",
-        "category": "suv"
-      }
-    ],
-    "operations": [
-      {
-        "url": "https://images.pexels.com/photos/28535657/pexels-photo-28535657.jpeg",
-        "alt": "GPS Tracking Interface",
-        "category": "dashboard_bg"
-      },
-      {
-        "url": "https://images.unsplash.com/photo-1708745427274-d5de5122fd57?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBtZWNoYW5pYyUyMGNoZWNraW5nJTIwY2FyJTIwZW5naW5lfGVufDB8fHx8MTc2NjI1MjEwNXww&ixlib=rb-4.1.0&q=85",
-        "alt": "Mechanic Checking Engine",
-        "category": "maintenance"
-      },
-      {
-        "url": "https://images.pexels.com/photos/4393427/pexels-photo-4393427.jpeg",
-        "alt": "Payment Terminal",
-        "category": "payment"
-      }
-    ]
-  },
-  "instructions_to_main_agent": {
-    "bilingual_strategy": {
-      "rule": "The app must support dynamic language switching (Arabic/French).",
-      "implementation": "Use a global context for language. When Arabic is selected, set <html dir='rtl'>. Use Tailwind logical properties (ms-*, me-*, ps-*, pe-*) instead of left/right where possible.",
-      "fonts": "Switch font-family based on language: 'IBM Plex Sans Arabic' for Arabic, 'IBM Plex Sans' for French."
+    "glassmorphism": {
+      "usage": "Panels, Cards, Sidebar",
+      "style": "backdrop-blur-xl bg-slate-950/50 border border-slate-800/50"
     },
-    "gps_integration": {
-      "url": "https://tracking.gps-14.net",
-      "method": "Embed via iframe in the 'Fleet Tracking' module. Ensure the iframe is responsive and has a fallback loading state."
+    "neon_borders": {
+      "usage": "Active states, KPIs, Primary Buttons",
+      "style": "box-shadow: 0 0 10px rgba(6, 182, 212, 0.5)"
     },
-    "contracts": {
-      "style": "Legal documents must look like paper. Use a white container with a subtle drop shadow, serif font, and high contrast text. The digital signature field should be prominent."
-    },
-    "dashboard": {
-      "layout": "Use the 'Control Room' grid. High density. Dark mode map widget. Key metrics (Revenue, Active Cars, Alerts) at the top."
-    },
-    "tech_stack_specifics": {
-      "components": "Use the existing Shadcn components in /components/ui. They are .jsx files. Customize them via Tailwind classes, do not rewrite the logic unless necessary.",
-      "icons": "Use lucide-react (default) or @phosphor-icons/react for a more technical look."
+    "grid_background": {
+      "usage": "Dashboard Background",
+      "style": "bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"
     }
   },
+  "layout": {
+    "grid_system": "The 'Control Room' Grid (Mode B)",
+    "spacing": "Generous padding (p-6, p-8) inside containers. Tight gaps (gap-4) between data widgets.",
+    "rtl_support": "Use logical properties (ms-*, me-*, ps-*, pe-*) or Tailwind's rtl: modifiers. Ensure sidebar flips.",
+    "container_style": "Rounded-lg or Rounded-xl. Avoid fully sharp edges unless for specific data tables."
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all",
+      "secondary": "bg-secondary/20 text-secondary hover:bg-secondary/30 border border-secondary/50"
+    },
+    "cards": {
+      "default": "bg-card/50 backdrop-blur-md border-border/50 hover:border-primary/50 transition-colors"
+    },
+    "inputs": {
+      "default": "bg-background/50 border-input focus:border-primary focus:ring-primary/30"
+    },
+    "charts": {
+      "library": "Recharts (via Shadcn)",
+      "style": "Use neon strokes (#06b6d4, #8b5cf6). Dark tooltips."
+    }
+  },
+  "images": {
+    "hero_login": {
+      "url": "https://images.unsplash.com/photo-1759926953612-e48779f26629?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwxfHxmdXR1cmlzdGljJTIwbHV4dXJ5JTIwY2FyJTIwZGFyayUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzY2MjU3ODkyfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Futuristic blue tunnel car for Login/Hero background."
+    },
+    "map_background": {
+      "url": "https://images.unsplash.com/photo-1542382189-f2600a163c2f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBjaXR5JTIwbWFwJTIwbmlnaHQlMjBncHMlMjB0cmFja2luZyUyMGludGVyZmFjZXxlbnwwfHx8fDE3NjYyNTc4OTV8MA&ixlib=rb-4.1.0&q=85",
+      "description": "City lights aerial for Map/Tracking section background."
+    },
+    "maintenance_hero": {
+      "url": "https://images.unsplash.com/photo-1746079074494-822fb0f83364?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBtZWNoYW5pYyUyMGNoZWNraW5nJTIwY2FyJTIwbW9kZXJuJTIwd29ya3Nob3B8ZW58MHx8fHwxNzY2MjU3ODk2fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Mechanic working on high-end car for Maintenance section."
+    }
+  },
+  "instructions_to_main_agent": {
+    "setup": [
+      "Install 'Rajdhani' font.",
+      "Update 'tailwind.config.js' with the 'Neon Control Room' colors.",
+      "Configure 'index.css' to use the new CSS variables for dark mode by default.",
+      "Ensure 'dir=rtl' is handled correctly in the root layout for Arabic language toggle."
+    ],
+    "implementation": [
+      "Build the Dashboard using the 'Control Room' grid.",
+      "Implement the 'Clients' and 'Reservations' modules with glassmorphism cards.",
+      "Use 'Recharts' for the Analytics module with neon colors.",
+      "Ensure all inputs and forms have high contrast borders.",
+      "Add 'data-testid' to all interactive elements."
+    ],
+    "rtl_specifics": [
+      "Use 'flex-row-reverse' where necessary if Tailwind's logical properties aren't enough.",
+      "Ensure icons flip (e.g., arrows) when in RTL mode."
+    ]
+  },
   "universal_guidelines": [
-    "Do not use 'Inter' for headings.",
-    "Do not use purple/teal gradients.",
-    "Always use data-testid attributes.",
-    "Use 2-3x more spacing than typical designs.",
-    "Every interaction needs a micro-animation."
+    "Do not use gradients for dark colors.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur).",
+    "Every interaction needs micro-animations.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Subtle grain textures and noise overlays are encouraged."
   ]
 }
