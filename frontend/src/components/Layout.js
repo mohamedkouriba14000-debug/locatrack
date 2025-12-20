@@ -87,7 +87,7 @@ const Layout = ({ children }) => {
                     data-testid={`nav-${item.path.substring(1)}`}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
                       isActive
-                        ? `bg-gradient-to-r from-${item.color}-100 to-${item.color}-50 text-${item.color}-700 border-2 border-${item.color}-300 shadow-md`
+                        ? 'bg-gradient-to-r from-cyan-100 to-violet-100 text-cyan-700 border-2 border-cyan-300 shadow-md'
                         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
