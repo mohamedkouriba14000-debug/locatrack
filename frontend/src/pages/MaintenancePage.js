@@ -31,7 +31,7 @@ const MaintenancePage = () => {
       setAlerts(alertsRes.data.alerts || []);
       playSyntheticSound('success');
     } catch (error) {
-      toast.error(t('error'));
+      toast.error(formatApiError(error));
       playSyntheticSound('error');
     } finally {
       setLoading(false);

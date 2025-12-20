@@ -61,7 +61,7 @@ const EmployeesPage = () => {
       resetForm();
       fetchEmployees();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur lors de l\'ajout');
+      toast.error(formatApiError(error));
       playSyntheticSound('error');
     }
   };

@@ -26,7 +26,7 @@ const PaymentsPage = () => {
       setPayments(response.data);
       playSyntheticSound('success');
     } catch (error) {
-      toast.error(t('error'));
+      toast.error(formatApiError(error));
       playSyntheticSound('error');
     } finally {
       setLoading(false);
