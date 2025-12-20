@@ -27,12 +27,11 @@ const Layout = ({ children }) => {
   const navigate = useNavigate();
   
   const menuItems = [
-    { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard', roles: ['admin', 'employee', 'client'], color: 'cyan' },
+    { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard', roles: ['admin', 'employee'], color: 'cyan' },
     { icon: Car, label: t('fleet'), path: '/fleet', roles: ['admin', 'employee'], color: 'violet' },
-    { icon: Users, label: t('clients'), path: '/clients', roles: ['admin', 'employee'], color: 'emerald' },
     { icon: Users, label: language === 'fr' ? 'Employés' : 'الموظفون', path: '/employees', roles: ['admin'], color: 'blue' },
-    { icon: Calendar, label: t('reservations'), path: '/reservations', roles: ['admin', 'employee', 'client'], color: 'blue' },
-    { icon: FileText, label: t('contracts'), path: '/contracts', roles: ['admin', 'employee', 'client'], color: 'purple' },
+    { icon: Calendar, label: t('reservations'), path: '/reservations', roles: ['admin', 'employee'], color: 'blue' },
+    { icon: FileText, label: t('contracts'), path: '/contracts', roles: ['admin', 'employee'], color: 'purple' },
     { icon: CreditCard, label: t('payments'), path: '/payments', roles: ['admin', 'employee'], color: 'green' },
     { icon: Wrench, label: t('maintenance'), path: '/maintenance', roles: ['admin', 'employee'], color: 'orange' },
     { icon: AlertTriangle, label: t('infractions'), path: '/infractions', roles: ['admin', 'employee'], color: 'red' },
