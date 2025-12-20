@@ -149,8 +149,6 @@ const FleetPage = () => {
     return colors[status] || colors.unavailable;
   };
   
-  const { language } = useLanguage();
-  
   if (loading) {
     return (
       <Layout>
