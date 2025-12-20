@@ -34,7 +34,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-      <Route path="/fleet" element={<ProtectedRoute><FleetPage /></ProtectedRoute>} />
+      <Route path="/fleet" element={<ProtectedRoute allowedRoles={['admin', 'employee']}><FleetPage /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
     </Routes>
   );
