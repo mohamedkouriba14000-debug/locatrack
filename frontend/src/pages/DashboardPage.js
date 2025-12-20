@@ -101,7 +101,7 @@ const DashboardPage = () => {
   
   // Filter stats for client role
   const visibleStats = user?.role === 'client' 
-    ? statCards.filter(card => ['activeContracts', 'rentedVehicles'].includes(card.testId.replace('stat-', '')))
+    ? statCards.filter(card => ['stat-active-contracts', 'stat-rented-vehicles'].includes(card.testId))
     : statCards;
   
   if (loading) {
