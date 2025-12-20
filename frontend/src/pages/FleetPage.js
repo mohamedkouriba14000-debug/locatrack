@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Plus, Search, Edit, Trash2, MapPin, Car } from 'lucide-react';
 import { toast } from 'sonner';
 import { playSyntheticSound } from '../utils/sounds';
+import { formatApiError } from '../utils/errorHandler';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -46,7 +47,7 @@ const FleetPage = () => {
       setFilteredVehicles(response.data);
       playSyntheticSound('success');
     } catch (error) {
-      toast.error(t('error'));
+      toast.error(formatApiError(error));
       playSyntheticSound('error');
     } finally {
       setLoading(false);
@@ -69,7 +70,7 @@ const FleetPage = () => {
       resetForm();
       fetchVehicles();
     } catch (error) {
-      toast.error(error.response?.data?.detail || t('error'));
+      toast.error(formatApiError(error));
       playSyntheticSound('error');
     }
   };
@@ -96,7 +97,7 @@ const FleetPage = () => {
       playSyntheticSound('success');
       fetchVehicles();
     } catch (error) {
-      toast.error(t('error'));
+      toast.error(formatApiError(error));
       playSyntheticSound('error');
     }
   };
