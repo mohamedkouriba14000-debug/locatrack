@@ -46,6 +46,7 @@ const AppRoutes = () => {
       <Route path="/infractions" element={<ProtectedRoute allowedRoles={['admin', 'employee']}><InfractionsPage /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin']}><ReportsPage /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
+      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
     </Routes>
   );
 };
