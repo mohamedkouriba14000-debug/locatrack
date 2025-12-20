@@ -5,19 +5,31 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Layout from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '../components/ui/dialog';
 import { Plus, Search, CheckCircle, XCircle, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { playSyntheticSound } from '../utils/sounds';
+import { formatApiError } from '../utils/errorHandler';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const ClientsPage = () => {
-  const { getAuthHeaders } = useAuth();
-  const { t } = useLanguage();
+  const { getAuthHeaders, user } = useAuth();
+  const { t, language } = useLanguage();
   const [clients, setClients] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showDialog, setShowDialog] = useState(false);
+  const [formData, setFormData] = useState({
+    user_id: '',
+    national_id: '',
+    driver_license: '',
+    license_expiry: '',
+    address: '',
+    emergency_contact: ''
+  });
   
   useEffect(() => { fetchClients(); }, []);
   
@@ -27,10 +39,34 @@ const ClientsPage = () => {
       setClients(response.data);
       playSyntheticSound('success');
     } catch (error) {
-      toast.error(t('error'));
+      toast.error(formatApiError(error));
       playSyntheticSound('error');
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    playSyntheticSound('click');
+    try {
+      // Pour démo, utiliser l'ID de l'utilisateur actuel
+      const clientData = {
+        ...formData,
+        user_id: user?.id || 'demo-user-id',
+        license_expiry: new Date(formData.license_expiry).toISOString()
+      };
+      
+      await axios.post(`${API}/clients`, clientData, { headers: getAuthHeaders() });
+      toast.success('Client ajouté avec succès');
+      playSyntheticSound('success');
+      setShowDialog(false);
+      resetForm();
+      fetchClients();
+    } catch (error) {
+      const errorMsg = formatApiError(error);
+      toast.error(errorMsg);
+      playSyntheticSound('error');
     }
   };
   
@@ -42,9 +78,20 @@ const ClientsPage = () => {
       playSyntheticSound('success');
       fetchClients();
     } catch (error) {
-      toast.error(t('error'));
+      toast.error(formatApiError(error));
       playSyntheticSound('error');
     }
+  };
+  
+  const resetForm = () => {
+    setFormData({
+      user_id: '',
+      national_id: '',
+      driver_license: '',
+      license_expiry: '',
+      address: '',
+      emergency_contact: ''
+    });
   };
   
   const filteredClients = clients.filter(c => 
@@ -59,9 +106,45 @@ const ClientsPage = () => {
       <div>
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-heading font-bold text-4xl uppercase text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-600">{t('clients')}</h1>
-          <Button onClick={() => playSyntheticSound('click')} className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-lg">
-            <Plus size={20} className="me-2" /> Ajouter Client
-          </Button>
+          <Dialog open={showDialog} onOpenChange={setShowDialog}>
+            <DialogTrigger asChild>
+              <Button onClick={() => playSyntheticSound('click')} className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-lg">
+                <Plus size={20} className="me-2" /> Ajouter Client
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md bg-white border-2 border-slate-200">
+              <DialogHeader>
+                <DialogTitle className="text-emerald-600 font-heading text-2xl">Nouveau Client</DialogTitle>
+                <DialogDescription className="text-slate-600">Informations du client</DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">Numéro CIN</Label>
+                  <Input value={formData.national_id} onChange={(e) => setFormData({...formData, national_id: e.target.value})} onFocus={() => playSyntheticSound('click')} required className="bg-white border-2 border-slate-300 focus:border-emerald-500" placeholder="123456789012" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">Permis de Conduire</Label>
+                  <Input value={formData.driver_license} onChange={(e) => setFormData({...formData, driver_license: e.target.value})} onFocus={() => playSyntheticSound('click')} required className="bg-white border-2 border-slate-300 focus:border-emerald-500" placeholder="DL123456" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">Date Expiration Permis</Label>
+                  <Input type="date" value={formData.license_expiry} onChange={(e) => setFormData({...formData, license_expiry: e.target.value})} onFocus={() => playSyntheticSound('click')} required className="bg-white border-2 border-slate-300 focus:border-emerald-500" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">Adresse</Label>
+                  <Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} onFocus={() => playSyntheticSound('click')} required className="bg-white border-2 border-slate-300 focus:border-emerald-500" placeholder="Alger, Algérie" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">Contact Urgence</Label>
+                  <Input value={formData.emergency_contact} onChange={(e) => setFormData({...formData, emergency_contact: e.target.value})} onFocus={() => playSyntheticSound('click')} className="bg-white border-2 border-slate-300 focus:border-emerald-500" placeholder="+213555123456" />
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button type="button" variant="outline" onClick={() => { playSyntheticSound('click'); setShowDialog(false); }} className="border-2 border-slate-300">{t('cancel')}</Button>
+                  <Button type="submit" className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white">Créer Client</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
         
         <div className="mb-6">
