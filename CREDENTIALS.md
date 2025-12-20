@@ -3,7 +3,7 @@
 ## Accès à l'Application / الوصول إلى التطبيق
 
 ### URL de l'Application
-**Production URL:** https://vehicletrackpro.preview.emergentagent.com
+**Production URL:** https://algiers-rentals.preview.emergentagent.com
 
 ### Comptes de Test / حسابات الاختبار
 
