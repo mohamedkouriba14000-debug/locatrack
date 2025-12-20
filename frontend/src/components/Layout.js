@@ -17,6 +17,7 @@ import {
   Languages,
   Bell
 } from 'lucide-react';
+import { playSyntheticSound } from '../utils/sounds';
 
 const Layout = ({ children }) => {
   const { t, toggleLanguage, language } = useLanguage();
@@ -41,8 +42,18 @@ const Layout = ({ children }) => {
   );
   
   const handleLogout = () => {
+    playSyntheticSound('click');
     logout();
     navigate('/login');
+  };
+  
+  const handleNavClick = () => {
+    playSyntheticSound('click');
+  };
+  
+  const handleLanguageToggle = () => {
+    playSyntheticSound('click');
+    toggleLanguage();
   };
   
   return (
@@ -66,6 +77,7 @@ const Layout = ({ children }) => {
                 <li key={item.path}>
                   <Link
                     to={item.path}
+                    onClick={handleNavClick}
                     data-testid={`nav-${item.path.substring(1)}`}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
                       isActive
