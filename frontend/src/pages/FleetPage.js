@@ -141,10 +141,10 @@ const FleetPage = () => {
   
   const getStatusColor = (status) => {
     const colors = {
-      available: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-      rented: 'bg-amber-100 text-amber-700 border-amber-200',
-      maintenance: 'bg-red-100 text-red-700 border-red-200',
-      unavailable: 'bg-slate-100 text-slate-700 border-slate-200'
+      available: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50',
+      rented: 'bg-violet-500/20 text-violet-400 border-violet-500/50',
+      maintenance: 'bg-red-500/20 text-red-400 border-red-500/50',
+      unavailable: 'bg-slate-500/20 text-slate-400 border-slate-500/50'
     };
     return colors[status] || colors.unavailable;
   };
