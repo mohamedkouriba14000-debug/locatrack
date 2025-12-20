@@ -51,7 +51,7 @@ const Layout = ({ children }) => {
       <aside className="fixed top-0 start-0 h-full w-64 glass border-e border-slate-800/50 shadow-2xl" data-testid="sidebar">
         <div className="p-6 border-b border-slate-800/50">
           <h1 className="font-heading font-bold text-2xl tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-500" data-testid="app-title">
-            VehicleTrack Pro
+            LocaTrack
           </h1>
           <p className="text-sm text-slate-300 mt-2" data-testid="user-info">{user?.full_name}</p>
           <p className="text-xs text-cyan-400 font-medium" data-testid="user-role">{t(user?.role)}</p>
