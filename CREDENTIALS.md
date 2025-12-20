@@ -46,7 +46,7 @@ Trois véhicules ont été préchargés dans le système:
 
 1. **Authentification et Autorisation**
    - Système d'authentification JWT
-   - 3 rôles: Admin, Employé, Client
+   - 2 rôles: Admin, Employé
    - Protection des routes par rôle
 
 2. **Tableau de Bord**
