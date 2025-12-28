@@ -705,6 +705,20 @@ async def create_infraction(
     await db.infractions.insert_one(doc)
     return infraction_obj
 
+@api_router.put("/infractions/{infraction_id}")
+async def update_infraction(
+    infraction_id: str,
+    update_data: dict,
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+):
+    result = await db.infractions.update_one(
+        {"id": infraction_id},
+        {"$set": update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Infraction not found")
+    return {"message": "Infraction updated"}
+
 # ==================== REPORTS ROUTES ====================
 
 @api_router.get("/reports/dashboard")
