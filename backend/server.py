@@ -801,6 +801,267 @@ async def get_financial_report(
         "monthly_revenue": monthly_revenue
     }
 
+# ==================== SUPERADMIN ROUTES ====================
+
+@api_router.get("/admin/users")
+async def get_all_users(
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
+):
+    """Get all registered users (SuperAdmin only)"""
+    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    for u in users:
+        if u.get('created_at') and isinstance(u['created_at'], str):
+            u['created_at'] = datetime.fromisoformat(u['created_at'])
+    return users
+
+@api_router.put("/admin/users/{user_id}")
+async def update_user(
+    user_id: str,
+    user_update: UserUpdate,
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
+):
+    """Update a user (SuperAdmin only)"""
+    update_data = {k: v for k, v in user_update.model_dump().items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+    
+    # Prevent changing superadmin's own role
+    if user_id == current_user.id and 'role' in update_data:
+        raise HTTPException(status_code=400, detail="Cannot change your own role")
+    
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User updated successfully"}
+
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user(
+    user_id: str,
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
+):
+    """Delete a user (SuperAdmin only)"""
+    # Prevent self-deletion
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    result = await db.users.delete_one({"id": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Also delete user's conversations and messages
+    await db.conversations.delete_many({"participants": user_id})
+    await db.messages.delete_many({"sender_id": user_id})
+    
+    return {"message": "User deleted successfully"}
+
+@api_router.get("/admin/stats")
+async def get_admin_stats(
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
+):
+    """Get platform statistics (SuperAdmin only)"""
+    total_users = await db.users.count_documents({})
+    admins = await db.users.count_documents({"role": "admin"})
+    employees = await db.users.count_documents({"role": "employee"})
+    superadmins = await db.users.count_documents({"role": "superadmin"})
+    
+    total_vehicles = await db.vehicles.count_documents({})
+    total_contracts = await db.contracts.count_documents({})
+    total_reservations = await db.reservations.count_documents({})
+    
+    return {
+        "total_users": total_users,
+        "superadmins": superadmins,
+        "admins": admins,
+        "employees": employees,
+        "total_vehicles": total_vehicles,
+        "total_contracts": total_contracts,
+        "total_reservations": total_reservations
+    }
+
+# ==================== MESSAGING ROUTES ====================
+
+@api_router.get("/messages/conversations")
+async def get_conversations(
+    current_user: User = Depends(get_current_user)
+):
+    """Get all conversations for current user"""
+    conversations = await db.conversations.find(
+        {"participants": current_user.id},
+        {"_id": 0}
+    ).sort("last_message_at", -1).to_list(100)
+    
+    for c in conversations:
+        for date_field in ['created_at', 'last_message_at']:
+            if c.get(date_field) and isinstance(c[date_field], str):
+                c[date_field] = datetime.fromisoformat(c[date_field])
+    
+    return conversations
+
+@api_router.post("/messages/conversations")
+async def create_conversation(
+    conv_create: ConversationCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new conversation with another user"""
+    # Check if participant exists
+    other_user = await db.users.find_one({"id": conv_create.participant_id}, {"_id": 0, "password": 0})
+    if not other_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if conversation already exists
+    existing = await db.conversations.find_one({
+        "participants": {"$all": [current_user.id, conv_create.participant_id]}
+    }, {"_id": 0})
+    
+    if existing:
+        if existing.get('created_at') and isinstance(existing['created_at'], str):
+            existing['created_at'] = datetime.fromisoformat(existing['created_at'])
+        if existing.get('last_message_at') and isinstance(existing['last_message_at'], str):
+            existing['last_message_at'] = datetime.fromisoformat(existing['last_message_at'])
+        return existing
+    
+    # Create new conversation
+    conversation = Conversation(
+        participants=[current_user.id, conv_create.participant_id],
+        participant_names=[current_user.full_name, other_user['full_name']],
+        unread_count={current_user.id: 0, conv_create.participant_id: 0}
+    )
+    
+    doc = conversation.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.conversations.insert_one(doc)
+    return conversation
+
+@api_router.get("/messages/conversations/{conversation_id}")
+async def get_conversation_messages(
+    conversation_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all messages in a conversation"""
+    # Verify user is participant
+    conversation = await db.conversations.find_one(
+        {"id": conversation_id, "participants": current_user.id},
+        {"_id": 0}
+    )
+    
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    # Get messages
+    messages = await db.messages.find(
+        {"conversation_id": conversation_id},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(1000)
+    
+    for m in messages:
+        if m.get('created_at') and isinstance(m['created_at'], str):
+            m['created_at'] = datetime.fromisoformat(m['created_at'])
+    
+    # Mark messages as read
+    await db.messages.update_many(
+        {"conversation_id": conversation_id, "sender_id": {"$ne": current_user.id}, "read": False},
+        {"$set": {"read": True}}
+    )
+    
+    # Reset unread count
+    await db.conversations.update_one(
+        {"id": conversation_id},
+        {"$set": {f"unread_count.{current_user.id}": 0}}
+    )
+    
+    return messages
+
+@api_router.post("/messages/send")
+async def send_message(
+    message_create: MessageCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Send a message in a conversation"""
+    # Verify conversation exists and user is participant
+    conversation = await db.conversations.find_one(
+        {"id": message_create.conversation_id, "participants": current_user.id},
+        {"_id": 0}
+    )
+    
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    # Create message
+    message = Message(
+        conversation_id=message_create.conversation_id,
+        sender_id=current_user.id,
+        sender_name=current_user.full_name,
+        sender_role=current_user.role,
+        content=message_create.content
+    )
+    
+    doc = message.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.messages.insert_one(doc)
+    
+    # Update conversation
+    other_participant = [p for p in conversation['participants'] if p != current_user.id][0]
+    current_unread = conversation.get('unread_count', {}).get(other_participant, 0)
+    
+    await db.conversations.update_one(
+        {"id": message_create.conversation_id},
+        {
+            "$set": {
+                "last_message": message_create.content[:100],
+                "last_message_at": doc['created_at'],
+                f"unread_count.{other_participant}": current_unread + 1
+            }
+        }
+    )
+    
+    return message
+
+@api_router.get("/messages/unread-count")
+async def get_unread_count(
+    current_user: User = Depends(get_current_user)
+):
+    """Get total unread messages count"""
+    conversations = await db.conversations.find(
+        {"participants": current_user.id},
+        {"_id": 0, "unread_count": 1}
+    ).to_list(100)
+    
+    total = sum(c.get('unread_count', {}).get(current_user.id, 0) for c in conversations)
+    return {"unread_count": total}
+
+@api_router.get("/messages/users")
+async def get_available_users_for_chat(
+    current_user: User = Depends(get_current_user)
+):
+    """Get users available for chat (admins and employees can chat with each other)"""
+    # SuperAdmin can chat with everyone
+    # Admin can chat with superadmin and employees
+    # Employee can chat with superadmin and admin
+    
+    if current_user.role == UserRole.SUPERADMIN:
+        query = {"id": {"$ne": current_user.id}}
+    elif current_user.role == UserRole.ADMIN:
+        query = {"id": {"$ne": current_user.id}, "role": {"$in": ["superadmin", "employee", "admin"]}}
+    else:  # Employee
+        query = {"id": {"$ne": current_user.id}, "role": {"$in": ["superadmin", "admin"]}}
+    
+    users = await db.users.find(query, {"_id": 0, "password": 0}).to_list(100)
+    
+    for u in users:
+        if u.get('created_at') and isinstance(u['created_at'], str):
+            u['created_at'] = datetime.fromisoformat(u['created_at'])
+    
+    return users
+
 # ==================== INCLUDE ROUTER ====================
 
 app.include_router(api_router)
