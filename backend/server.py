@@ -242,6 +242,42 @@ class InvoiceCreate(BaseModel):
     amount: float
     tax_amount: float
 
+# ==================== MESSAGING MODELS ====================
+
+class Message(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    conversation_id: str
+    sender_id: str
+    sender_name: str
+    sender_role: str
+    content: str
+    read: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MessageCreate(BaseModel):
+    conversation_id: str
+    content: str
+
+class Conversation(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    participants: List[str]  # List of user IDs
+    participant_names: List[str]
+    last_message: Optional[str] = None
+    last_message_at: Optional[datetime] = None
+    unread_count: dict = {}  # {user_id: count}
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ConversationCreate(BaseModel):
+    participant_id: str  # ID of the other user
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    role: Optional[str] = None
+    phone: Optional[str] = None
+
 # ==================== AUTHENTICATION ====================
 
 def hash_password(password: str) -> str:
