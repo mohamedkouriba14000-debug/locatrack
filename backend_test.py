@@ -262,6 +262,167 @@ class VehicleTrackAPITester:
         self.log_test("Create vehicle (client) - access denied", client_create_success, 
                      "Client correctly denied vehicle creation")
 
+    def test_superadmin_functionality(self):
+        """Test SuperAdmin specific endpoints"""
+        print("\n👑 Testing SuperAdmin Functionality...")
+        
+        # Test /admin/users endpoint (SuperAdmin only)
+        users_success, users_response = self.make_request(
+            'GET', 'admin/users', token=self.tokens.get('superadmin')
+        )
+        
+        if users_success and isinstance(users_response, list):
+            self.log_test("SuperAdmin get all users", True, 
+                        f"Retrieved {len(users_response)} users")
+            
+            # Store user data for update/delete tests
+            test_user = None
+            for user in users_response:
+                if user.get('role') == 'employee':
+                    test_user = user
+                    break
+            
+            if test_user:
+                self.test_data['test_user_id'] = test_user['id']
+                
+                # Test user update
+                update_data = {
+                    'full_name': 'Updated Test Employee',
+                    'phone': '+213555123456'
+                }
+                
+                update_success, update_response = self.make_request(
+                    'PUT', f'admin/users/{test_user["id"]}', update_data,
+                    token=self.tokens.get('superadmin')
+                )
+                self.log_test("SuperAdmin update user", update_success,
+                            "User updated successfully" if update_success else f"Update failed: {update_response}")
+        else:
+            self.log_test("SuperAdmin get all users", False, 
+                        f"Failed to get users: {users_response}")
+        
+        # Test /admin/stats endpoint (SuperAdmin only)
+        stats_success, stats_response = self.make_request(
+            'GET', 'admin/stats', token=self.tokens.get('superadmin')
+        )
+        
+        if stats_success:
+            required_stats = ['total_users', 'superadmins', 'admins', 'employees', 'total_vehicles']
+            missing_stats = [stat for stat in required_stats if stat not in stats_response]
+            
+            if not missing_stats:
+                self.log_test("SuperAdmin stats structure", True, 
+                            f"All required stats present")
+            else:
+                self.log_test("SuperAdmin stats structure", False, 
+                            f"Missing stats: {missing_stats}")
+        else:
+            self.log_test("SuperAdmin get stats", False, 
+                        f"Failed to get stats: {stats_response}")
+        
+        # Test access restriction for admin role
+        admin_users_success, admin_users_response = self.make_request(
+            'GET', 'admin/users', token=self.tokens.get('admin'),
+            expected_status=403
+        )
+        self.log_test("Admin denied SuperAdmin endpoints", admin_users_success,
+                     "Admin correctly denied access to SuperAdmin endpoints")
+
+    def test_messaging_functionality(self):
+        """Test messaging system endpoints"""
+        print("\n💬 Testing Messaging System...")
+        
+        # Test get available users for chat
+        users_success, users_response = self.make_request(
+            'GET', 'messages/users', token=self.tokens.get('admin')
+        )
+        
+        if users_success and isinstance(users_response, list):
+            self.log_test("Get available users for chat", True, 
+                        f"Found {len(users_response)} available users")
+            
+            # Find an employee to chat with
+            employee_user = None
+            for user in users_response:
+                if user.get('role') == 'employee':
+                    employee_user = user
+                    break
+            
+            if employee_user:
+                # Test create conversation
+                conv_data = {'participant_id': employee_user['id']}
+                conv_success, conv_response = self.make_request(
+                    'POST', 'messages/conversations', conv_data,
+                    token=self.tokens.get('admin')
+                )
+                
+                if conv_success and 'id' in conv_response:
+                    conversation_id = conv_response['id']
+                    self.test_data['test_conversation_id'] = conversation_id
+                    self.log_test("Create conversation", True, 
+                                f"Conversation created with ID: {conversation_id}")
+                    
+                    # Test send message
+                    message_data = {
+                        'conversation_id': conversation_id,
+                        'content': 'Test message from automated testing'
+                    }
+                    
+                    message_success, message_response = self.make_request(
+                        'POST', 'messages/send', message_data,
+                        token=self.tokens.get('admin')
+                    )
+                    
+                    if message_success and 'id' in message_response:
+                        self.log_test("Send message", True, 
+                                    f"Message sent with ID: {message_response['id']}")
+                        
+                        # Test get conversation messages
+                        messages_success, messages_response = self.make_request(
+                            'GET', f'messages/conversations/{conversation_id}',
+                            token=self.tokens.get('admin')
+                        )
+                        
+                        if messages_success and isinstance(messages_response, list):
+                            self.log_test("Get conversation messages", True, 
+                                        f"Retrieved {len(messages_response)} messages")
+                        else:
+                            self.log_test("Get conversation messages", False, 
+                                        f"Failed to get messages: {messages_response}")
+                    else:
+                        self.log_test("Send message", False, 
+                                    f"Failed to send message: {message_response}")
+                else:
+                    self.log_test("Create conversation", False, 
+                                f"Failed to create conversation: {conv_response}")
+        else:
+            self.log_test("Get available users for chat", False, 
+                        f"Failed to get users: {users_response}")
+        
+        # Test get conversations
+        conversations_success, conversations_response = self.make_request(
+            'GET', 'messages/conversations', token=self.tokens.get('admin')
+        )
+        
+        if conversations_success and isinstance(conversations_response, list):
+            self.log_test("Get conversations list", True, 
+                        f"Retrieved {len(conversations_response)} conversations")
+        else:
+            self.log_test("Get conversations list", False, 
+                        f"Failed to get conversations: {conversations_response}")
+        
+        # Test unread count
+        unread_success, unread_response = self.make_request(
+            'GET', 'messages/unread-count', token=self.tokens.get('admin')
+        )
+        
+        if unread_success and 'unread_count' in unread_response:
+            self.log_test("Get unread count", True, 
+                        f"Unread count: {unread_response['unread_count']}")
+        else:
+            self.log_test("Get unread count", False, 
+                        f"Failed to get unread count: {unread_response}")
+
     def test_role_based_access(self):
         """Test role-based access control"""
         print("\n🔒 Testing Role-Based Access Control...")
