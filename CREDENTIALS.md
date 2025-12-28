@@ -4,17 +4,32 @@
 
 ### Comptes de Test / حسابات الاختبار
 
-#### 1. Administrateur / مدير
+#### 1. Super Administrateur / المدير العام 👑
+- **Email:** superadmin@locatrack.dz
+- **Password:** superadmin123
+- **Rôle:** Super Admin (Contrôle total SaaS)
+- **Permissions:** Gestion de tous les utilisateurs, statistiques plateforme, toutes les fonctionnalités
+
+#### 2. Administrateur / مدير 🔑
 - **Email:** admin@vehicletrack.dz
 - **Password:** admin123
-- **Rôle:** Admin (Accès complet)
-- **Permissions:** Gestion complète de la flotte, employés, contrats, paiements, maintenance, infractions, rapports
+- **Rôle:** Admin (Gestion entreprise)
+- **Permissions:** Gestion de la flotte, employés, contrats, paiements, maintenance, infractions, rapports
 
-#### 2. Employé / موظف
+#### 3. Employé / موظف 👤
 - **Email:** employee@vehicletrack.dz  
 - **Password:** employee123
 - **Rôle:** Employee (Opérations quotidiennes)
 - **Permissions:** Gestion de la flotte, réservations, contrats, paiements, maintenance, infractions
+
+---
+
+## Fonctionnalités de Messagerie / ميزات المراسلة
+
+- **Chat en temps réel** entre Admin ↔ Employé
+- **Super Admin** peut discuter avec tous les utilisateurs
+- **Notifications** de messages non lus
+- **Historique** des conversations
 
 ---
 
