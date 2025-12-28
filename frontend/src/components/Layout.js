@@ -134,15 +134,16 @@ const Layout = ({ children }) => {
               <p className="text-xs text-slate-500">v2.0</p>
             </div>
           </div>
-          <div className={`mt-4 p-3 rounded-lg border ${user?.role === 'superadmin' ? 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200' : 'bg-gradient-to-br from-cyan-50 to-violet-50 border-cyan-200'}`}>
+          <div className={`mt-4 p-3 rounded-lg border bg-gradient-to-br ${getRoleColor(user?.role)}`}>
             <p className="text-sm text-slate-700 font-medium" data-testid="user-info">{user?.full_name}</p>
-            <p className={`text-xs font-semibold ${user?.role === 'superadmin' ? 'text-amber-600' : 'text-cyan-600'}`} data-testid="user-role">{getRoleBadge(user?.role)}</p>
+            {user?.company_name && <p className="text-xs text-slate-500">{user?.company_name}</p>}
+            <p className={`text-xs font-semibold ${getRoleTextColor(user?.role)}`} data-testid="user-role">{getRoleBadge(user?.role)}</p>
           </div>
         </div>
         
         <nav className="p-4 overflow-y-auto h-[calc(100vh-320px)]" data-testid="navigation">
           <ul className="space-y-1">
-            {filteredMenuItems.map((item) => {
+            {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               const isSuperAdminLink = item.path === '/admin';
@@ -171,13 +172,14 @@ const Layout = ({ children }) => {
         </nav>
         
         <div className="absolute bottom-0 start-0 w-full p-4 border-t border-slate-200 bg-white space-y-2">
-          <Link to="/messages">
-            <Button
-              variant="outline"
-              className={`w-full justify-start border-slate-300 hover:border-cyan-500 hover:bg-cyan-50 ${location.pathname === '/messages' ? 'bg-cyan-50 border-cyan-300' : ''}`}
-              data-testid="messages-button"
-            >
-              <MessageCircle size={20} className="me-2 text-cyan-600" />
+          {user?.role !== 'superadmin' && (
+            <Link to="/messages">
+              <Button
+                variant="outline"
+                className={`w-full justify-start border-slate-300 hover:border-cyan-500 hover:bg-cyan-50 ${location.pathname === '/messages' ? 'bg-cyan-50 border-cyan-300' : ''}`}
+                data-testid="messages-button"
+              >
+                <MessageCircle size={20} className="me-2 text-cyan-600" />
               <span className="text-slate-700 flex-1 text-start">{language === 'fr' ? 'Messages' : 'الرسائل'}</span>
               {unreadCount > 0 && (
                 <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
