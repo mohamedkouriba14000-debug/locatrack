@@ -248,6 +248,8 @@ class InfractionCreate(BaseModel):
     description: str
     amount: float
     date: datetime
+    location: Optional[str] = None
+    paid_by: Optional[str] = None
 
 class Invoice(BaseModel):
     model_config = ConfigDict(extra="ignore")
