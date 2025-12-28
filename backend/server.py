@@ -408,11 +408,88 @@ async def login(user_login: UserLogin):
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
+# ==================== EMPLOYEE MANAGEMENT (Locateur only) ====================
+
+@api_router.post("/employees", response_model=User)
+async def create_employee(
+    employee_create: EmployeeCreate,
+    current_user: User = Depends(require_role([UserRole.LOCATEUR]))
+):
+    """Create an employee for the locateur's company"""
+    # Check if user exists
+    existing_user = await db.users.find_one({"email": employee_create.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create employee user linked to this locateur
+    user_obj = User(
+        email=employee_create.email,
+        full_name=employee_create.full_name,
+        role=UserRole.EMPLOYEE,
+        phone=employee_create.phone,
+        tenant_id=current_user.id  # Link employee to locateur
+    )
+    
+    doc = user_obj.model_dump()
+    doc['password'] = hash_password(employee_create.password)
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.users.insert_one(doc)
+    return user_obj
+
+@api_router.get("/employees", response_model=List[User])
+async def get_employees(
+    current_user: User = Depends(require_role([UserRole.LOCATEUR]))
+):
+    """Get all employees for this locateur"""
+    employees = await db.users.find(
+        {"tenant_id": current_user.id, "role": UserRole.EMPLOYEE},
+        {"_id": 0, "password": 0}
+    ).to_list(1000)
+    
+    for e in employees:
+        if isinstance(e.get('created_at'), str):
+            e['created_at'] = datetime.fromisoformat(e['created_at'])
+    
+    return employees
+
+@api_router.put("/employees/{employee_id}")
+async def update_employee(
+    employee_id: str,
+    update_data: dict,
+    current_user: User = Depends(require_role([UserRole.LOCATEUR]))
+):
+    """Update an employee"""
+    # Ensure employee belongs to this locateur
+    result = await db.users.update_one(
+        {"id": employee_id, "tenant_id": current_user.id},
+        {"$set": {k: v for k, v in update_data.items() if k not in ['password', 'role', 'tenant_id']}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    return {"message": "Employee updated"}
+
+@api_router.delete("/employees/{employee_id}")
+async def delete_employee(
+    employee_id: str,
+    current_user: User = Depends(require_role([UserRole.LOCATEUR]))
+):
+    """Delete an employee"""
+    result = await db.users.delete_one({"id": employee_id, "tenant_id": current_user.id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    return {"message": "Employee deleted"}
+
 # ==================== VEHICLE ROUTES ====================
 
 @api_router.get("/vehicles", response_model=List[Vehicle])
 async def get_vehicles(current_user: User = Depends(get_current_user)):
-    vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
+    """Get vehicles for the current tenant"""
+    tenant_id = get_tenant_id(current_user)
+    if not tenant_id:
+        return []  # SuperAdmin sees nothing here
+    
+    vehicles = await db.vehicles.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
     for v in vehicles:
         for date_field in ['created_at', 'insurance_expiry']:
             if v.get(date_field) and isinstance(v[date_field], str):
@@ -422,9 +499,14 @@ async def get_vehicles(current_user: User = Depends(get_current_user)):
 @api_router.post("/vehicles", response_model=Vehicle)
 async def create_vehicle(
     vehicle_create: VehicleCreate,
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
-    vehicle_obj = Vehicle(**vehicle_create.model_dump())
+    """Create a vehicle for the current tenant"""
+    tenant_id = get_tenant_id(current_user)
+    if not tenant_id:
+        raise HTTPException(status_code=400, detail="No tenant associated")
+    
+    vehicle_obj = Vehicle(tenant_id=tenant_id, **vehicle_create.model_dump())
     doc = vehicle_obj.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     if doc.get('insurance_expiry'):
@@ -437,14 +519,16 @@ async def create_vehicle(
 async def update_vehicle(
     vehicle_id: str,
     vehicle_update: VehicleCreate,
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
+    """Update a vehicle belonging to the current tenant"""
+    tenant_id = get_tenant_id(current_user)
     update_data = vehicle_update.model_dump()
     if update_data.get('insurance_expiry'):
         update_data['insurance_expiry'] = update_data['insurance_expiry'].isoformat()
     
     result = await db.vehicles.update_one(
-        {"id": vehicle_id},
+        {"id": vehicle_id, "tenant_id": tenant_id},
         {"$set": update_data}
     )
     
@@ -461,9 +545,11 @@ async def update_vehicle(
 @api_router.delete("/vehicles/{vehicle_id}")
 async def delete_vehicle(
     vehicle_id: str,
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR]))
 ):
-    result = await db.vehicles.delete_one({"id": vehicle_id})
+    """Delete a vehicle (Locateur only)"""
+    tenant_id = get_tenant_id(current_user)
+    result = await db.vehicles.delete_one({"id": vehicle_id, "tenant_id": tenant_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Vehicle not found")
     return {"message": "Vehicle deleted successfully"}
