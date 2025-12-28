@@ -541,6 +541,8 @@ class VehicleTrackAPITester:
         
         # Run all test suites
         self.test_dashboard_stats()
+        self.test_superadmin_functionality()
+        self.test_messaging_functionality()
         self.test_vehicles_crud()
         self.test_role_based_access()
         self.test_data_validation()
