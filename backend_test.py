@@ -191,7 +191,7 @@ class VehicleTrackAPITester:
             self.log_test("Get vehicles list", False, 
                         f"Failed to get vehicles: {response}")
         
-        # Test CREATE vehicle (admin)
+        # Test CREATE vehicle (locateur)
         new_vehicle = {
             "registration_number": f"TEST-{datetime.now().strftime('%H%M%S')}",
             "type": "sedan",
@@ -205,14 +205,14 @@ class VehicleTrackAPITester:
         }
         
         create_success, create_response = self.make_request(
-            'POST', 'vehicles', new_vehicle, token=self.tokens.get('admin'), 
+            'POST', 'vehicles', new_vehicle, token=self.tokens.get('locateur'), 
             expected_status=200  # API returns 200, not 201
         )
         
         if create_success and 'id' in create_response:
             vehicle_id = create_response['id']
             self.test_data['test_vehicle_id'] = vehicle_id
-            self.log_test("Create vehicle (admin)", True, 
+            self.log_test("Create vehicle (locateur)", True, 
                         f"Vehicle created with ID: {vehicle_id}")
             
             # Test UPDATE vehicle
@@ -222,7 +222,7 @@ class VehicleTrackAPITester:
             
             update_success, update_response = self.make_request(
                 'PUT', f'vehicles/{vehicle_id}', update_data, 
-                token=self.tokens.get('admin')
+                token=self.tokens.get('locateur')
             )
             
             if update_success and update_response.get('color') == 'Red':
@@ -231,7 +231,7 @@ class VehicleTrackAPITester:
                 self.log_test("Update vehicle", False, 
                             f"Update failed: {update_response}")
         else:
-            self.log_test("Create vehicle (admin)", False, 
+            self.log_test("Create vehicle (locateur)", False, 
                         f"Creation failed: {create_response}")
         
         # Test CREATE vehicle (employee) - should work
@@ -253,13 +253,21 @@ class VehicleTrackAPITester:
         self.log_test("Create vehicle (employee)", emp_create_success, 
                      "Employee can create vehicles")
         
-        # Test CREATE vehicle (client) - should fail
-        client_create_success, client_create_response = self.make_request(
-            'POST', 'vehicles', employee_vehicle, token=self.tokens.get('client'),
-            expected_status=403
+        # Test SuperAdmin should NOT access vehicles (platform management only)
+        superadmin_vehicles_success, superadmin_vehicles_response = self.make_request(
+            'GET', 'vehicles', token=self.tokens.get('superadmin'),
+            expected_status=200  # SuperAdmin gets empty list due to no tenant_id
         )
-        self.log_test("Create vehicle (client) - access denied", client_create_success, 
-                     "Client correctly denied vehicle creation")
+        if superadmin_vehicles_success and isinstance(superadmin_vehicles_response, list):
+            if len(superadmin_vehicles_response) == 0:
+                self.log_test("SuperAdmin vehicle isolation", True, 
+                            "SuperAdmin correctly sees no vehicles (platform management only)")
+            else:
+                self.log_test("SuperAdmin vehicle isolation", False, 
+                            f"SuperAdmin should not see vehicles but got {len(superadmin_vehicles_response)}")
+        else:
+            self.log_test("SuperAdmin vehicle access", False, 
+                        f"SuperAdmin vehicle access failed: {superadmin_vehicles_response}")
 
     def test_locateur_registration(self):
         """Test locateur registration endpoint"""
