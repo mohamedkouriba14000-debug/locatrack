@@ -189,6 +189,7 @@ class ReservationCreate(BaseModel):
 class Payment(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str  # Links payment to locateur
     contract_id: str
     amount: float
     method: str  # cib, edahabia, cash, check
