@@ -180,12 +180,13 @@ const Layout = ({ children }) => {
                 data-testid="messages-button"
               >
                 <MessageCircle size={20} className="me-2 text-cyan-600" />
-              <span className="text-slate-700 flex-1 text-start">{language === 'fr' ? 'Messages' : 'الرسائل'}</span>
-              {unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
-              )}
-            </Button>
-          </Link>
+                <span className="text-slate-700 flex-1 text-start">{language === 'fr' ? 'Messages' : 'الرسائل'}</span>
+                {unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
+                )}
+              </Button>
+            </Link>
+          )}
           <Button
             onClick={toggleLanguage}
             variant="outline"
@@ -215,22 +216,24 @@ const Layout = ({ children }) => {
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
             <span className="text-sm text-slate-600 font-medium">{t('connected')}</span>
           </div>
-          <Link to="/messages">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="relative hover:bg-slate-100"
-              data-testid="notifications-button"
-            >
-              <MessageCircle size={20} className="text-slate-600" />
-              {unreadCount > 0 && (
-                <>
-                  <span className="absolute top-1 end-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-                  <span className="absolute top-1 end-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                </>
-              )}
-            </Button>
-          </Link>
+          {user?.role !== 'superadmin' && (
+            <Link to="/messages">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="relative hover:bg-slate-100"
+                data-testid="notifications-button"
+              >
+                <MessageCircle size={20} className="text-slate-600" />
+                {unreadCount > 0 && (
+                  <>
+                    <span className="absolute top-1 end-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                    <span className="absolute top-1 end-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                  </>
+                )}
+              </Button>
+            </Link>
+          )}
         </div>
         
         <div className="p-8">
