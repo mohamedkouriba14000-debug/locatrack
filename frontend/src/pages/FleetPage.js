@@ -56,22 +56,33 @@ const FleetPage = () => {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
-    playSyntheticSound('click');
     try {
-      if (editingVehicle) {
-        await axios.put(`${API}/vehicles/${editingVehicle.id}`, formData, { headers: getAuthHeaders() });
-        toast.success('Véhicule modifié');
+      // Prepare data - only include insurance_expiry if it has a value
+      const submitData = {
+        ...formData,
+        daily_rate: parseFloat(formData.daily_rate) || 0,
+        year: parseInt(formData.year)
+      };
+      
+      // Handle optional insurance_expiry - convert to ISO format or remove if empty
+      if (submitData.insurance_expiry && submitData.insurance_expiry.trim() !== '') {
+        submitData.insurance_expiry = new Date(submitData.insurance_expiry).toISOString();
       } else {
-        await axios.post(`${API}/vehicles`, formData, { headers: getAuthHeaders() });
-        toast.success('Véhicule ajouté');
+        delete submitData.insurance_expiry;
       }
-      playSyntheticSound('success');
+      
+      if (editingVehicle) {
+        await axios.put(`${API}/vehicles/${editingVehicle.id}`, submitData, { headers: getAuthHeaders() });
+        toast.success(language === 'fr' ? 'Véhicule modifié' : 'تم تعديل المركبة');
+      } else {
+        await axios.post(`${API}/vehicles`, submitData, { headers: getAuthHeaders() });
+        toast.success(language === 'fr' ? 'Véhicule ajouté' : 'تمت إضافة المركبة');
+      }
       setShowDialog(false);
       resetForm();
       fetchVehicles();
     } catch (error) {
       toast.error(formatApiError(error));
-      playSyntheticSound('error');
     }
   };
   
