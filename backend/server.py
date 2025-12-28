@@ -565,7 +565,7 @@ async def get_clients(
     tenant_id = get_tenant_id(current_user)
     clients = await db.clients.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
     for c in clients:
-        for date_field in ['created_at', 'license_expiry']:
+        for date_field in ['created_at', 'license_issue_date']:
             if c.get(date_field) and isinstance(c[date_field], str):
                 c[date_field] = datetime.fromisoformat(c[date_field])
     return clients
@@ -576,14 +576,45 @@ async def create_client(
     current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
     tenant_id = get_tenant_id(current_user)
-    client_obj = Client(**client_create.model_dump())
+    client_data = client_create.model_dump()
+    client_data['tenant_id'] = tenant_id
+    client_obj = Client(**client_data)
     doc = client_obj.model_dump()
-    doc['tenant_id'] = tenant_id
     doc['created_at'] = doc['created_at'].isoformat()
-    doc['license_expiry'] = doc['license_expiry'].isoformat()
+    doc['license_issue_date'] = doc['license_issue_date'].isoformat()
     
     await db.clients.insert_one(doc)
     return client_obj
+
+@api_router.put("/clients/{client_id}")
+async def update_client(
+    client_id: str,
+    update_data: dict,
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
+):
+    tenant_id = get_tenant_id(current_user)
+    # Convert date if present
+    if update_data.get('license_issue_date') and isinstance(update_data['license_issue_date'], str):
+        update_data['license_issue_date'] = datetime.fromisoformat(update_data['license_issue_date'].replace('Z', '+00:00'))
+    
+    result = await db.clients.update_one(
+        {"id": client_id, "tenant_id": tenant_id},
+        {"$set": update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return {"message": "Client updated"}
+
+@api_router.delete("/clients/{client_id}")
+async def delete_client(
+    client_id: str,
+    current_user: User = Depends(require_role([UserRole.LOCATEUR]))
+):
+    tenant_id = get_tenant_id(current_user)
+    result = await db.clients.delete_one({"id": client_id, "tenant_id": tenant_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return {"message": "Client deleted"}
 
 # ==================== CONTRACT ROUTES ====================
 
