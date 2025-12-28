@@ -13,6 +13,8 @@ import PaymentsPage from './pages/PaymentsPage';
 import MaintenancePage from './pages/MaintenancePage';
 import InfractionsPage from './pages/InfractionsPage';
 import ReportsPage from './pages/ReportsPage';
+import SuperAdminPage from './pages/SuperAdminPage';
+import MessagesPage from './pages/MessagesPage';
 import './App.css';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -37,14 +39,16 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-      <Route path="/fleet" element={<ProtectedRoute allowedRoles={['admin', 'employee']}><FleetPage /></ProtectedRoute>} />
-      <Route path="/employees" element={<ProtectedRoute allowedRoles={['admin']}><EmployeesPage /></ProtectedRoute>} />
+      <Route path="/fleet" element={<ProtectedRoute allowedRoles={['superadmin', 'admin', 'employee']}><FleetPage /></ProtectedRoute>} />
+      <Route path="/employees" element={<ProtectedRoute allowedRoles={['superadmin', 'admin']}><EmployeesPage /></ProtectedRoute>} />
       <Route path="/reservations" element={<ProtectedRoute><ReservationsPage /></ProtectedRoute>} />
       <Route path="/contracts" element={<ProtectedRoute><ContractsPage /></ProtectedRoute>} />
-      <Route path="/payments" element={<ProtectedRoute allowedRoles={['admin', 'employee']}><PaymentsPage /></ProtectedRoute>} />
-      <Route path="/maintenance" element={<ProtectedRoute allowedRoles={['admin', 'employee']}><MaintenancePage /></ProtectedRoute>} />
-      <Route path="/infractions" element={<ProtectedRoute allowedRoles={['admin', 'employee']}><InfractionsPage /></ProtectedRoute>} />
-      <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin']}><ReportsPage /></ProtectedRoute>} />
+      <Route path="/payments" element={<ProtectedRoute allowedRoles={['superadmin', 'admin', 'employee']}><PaymentsPage /></ProtectedRoute>} />
+      <Route path="/maintenance" element={<ProtectedRoute allowedRoles={['superadmin', 'admin', 'employee']}><MaintenancePage /></ProtectedRoute>} />
+      <Route path="/infractions" element={<ProtectedRoute allowedRoles={['superadmin', 'admin', 'employee']}><InfractionsPage /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute allowedRoles={['superadmin', 'admin']}><ReportsPage /></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminPage /></ProtectedRoute>} />
+      <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
       <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
     </Routes>
