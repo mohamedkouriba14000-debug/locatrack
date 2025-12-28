@@ -345,21 +345,36 @@ def require_role(required_roles: List[str]):
         return current_user
     return role_checker
 
+def get_tenant_id(user: User) -> str:
+    """Get the tenant_id for the current user"""
+    if user.role == UserRole.LOCATEUR:
+        return user.id  # Locateur's own ID is the tenant_id
+    elif user.role == UserRole.EMPLOYEE:
+        return user.tenant_id  # Employee belongs to a locateur
+    return None  # SuperAdmin has no tenant
+
 # ==================== AUTH ROUTES ====================
 
 @api_router.post("/auth/register", response_model=Token)
-async def register(user_create: UserCreate):
+async def register_locateur(locateur_register: LocateurRegister):
+    """Register a new Locateur (rental company owner)"""
     # Check if user exists
-    existing_user = await db.users.find_one({"email": user_create.email})
+    existing_user = await db.users.find_one({"email": locateur_register.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create user
-    user_dict = user_create.model_dump(exclude={'password'})
-    user_obj = User(**user_dict)
+    # Create locateur user
+    user_obj = User(
+        email=locateur_register.email,
+        full_name=locateur_register.full_name,
+        role=UserRole.LOCATEUR,
+        phone=locateur_register.phone,
+        company_name=locateur_register.company_name,
+        tenant_id=None  # Locateur doesn't have tenant_id, they ARE the tenant
+    )
     
     doc = user_obj.model_dump()
-    doc['password'] = hash_password(user_create.password)
+    doc['password'] = hash_password(locateur_register.password)
     doc['created_at'] = doc['created_at'].isoformat()
     
     await db.users.insert_one(doc)
