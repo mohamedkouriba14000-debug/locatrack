@@ -40,9 +40,9 @@ security = HTTPBearer()
 # ==================== MODELS ====================
 
 class UserRole:
+    SUPERADMIN = "superadmin"
     ADMIN = "admin"
     EMPLOYEE = "employee"
-    CLIENT = "client"
 
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
