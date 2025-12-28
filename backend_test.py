@@ -117,15 +117,15 @@ class VehicleTrackAPITester:
         """Test dashboard statistics endpoint"""
         print("\n📊 Testing Dashboard Stats...")
         
-        # Test with admin token
+        # Test with locateur token
         success, response = self.make_request(
-            'GET', 'reports/dashboard', token=self.tokens.get('admin')
+            'GET', 'reports/dashboard', token=self.tokens.get('locateur')
         )
         
         if success:
             required_fields = [
                 'total_vehicles', 'available_vehicles', 'rented_vehicles',
-                'total_clients', 'active_contracts', 'total_revenue_30d',
+                'total_employees', 'active_contracts', 'total_revenue_30d',
                 'pending_infractions', 'upcoming_maintenance'
             ]
             
@@ -137,7 +137,7 @@ class VehicleTrackAPITester:
                 
                 # Check data types
                 numeric_fields = ['total_vehicles', 'available_vehicles', 'rented_vehicles', 
-                                'total_clients', 'active_contracts', 'total_revenue_30d']
+                                'total_employees', 'active_contracts', 'total_revenue_30d']
                 
                 type_errors = []
                 for field in numeric_fields:
@@ -164,13 +164,13 @@ class VehicleTrackAPITester:
         self.log_test("Dashboard access for employee", emp_success, 
                      "Employee can access dashboard")
         
-        # Test with client token (should fail)
-        client_success, client_response = self.make_request(
-            'GET', 'reports/dashboard', token=self.tokens.get('client'), 
+        # Test SuperAdmin should NOT access dashboard (platform management only)
+        superadmin_success, superadmin_response = self.make_request(
+            'GET', 'reports/dashboard', token=self.tokens.get('superadmin'), 
             expected_status=403
         )
-        self.log_test("Dashboard access restriction for client", client_success, 
-                     "Client correctly denied access")
+        self.log_test("Dashboard access restriction for SuperAdmin", superadmin_success, 
+                     "SuperAdmin correctly denied dashboard access")
 
     def test_vehicles_crud(self):
         """Test vehicle CRUD operations"""
