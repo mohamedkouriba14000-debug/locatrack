@@ -750,7 +750,7 @@ class VehicleTrackAPITester:
         if 'test_vehicle_id' in self.test_data:
             delete_success, delete_response = self.make_request(
                 'DELETE', f'vehicles/{self.test_data["test_vehicle_id"]}',
-                token=self.tokens.get('admin')
+                token=self.tokens.get('locateur')
             )
             self.log_test("Cleanup test vehicle", delete_success,
                          "Test vehicle deleted")
