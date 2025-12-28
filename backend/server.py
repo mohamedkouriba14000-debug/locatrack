@@ -41,7 +41,7 @@ security = HTTPBearer()
 
 class UserRole:
     SUPERADMIN = "superadmin"
-    ADMIN = "admin"
+    LOCATEUR = "locateur"
     EMPLOYEE = "employee"
 
 class User(BaseModel):
@@ -51,6 +51,8 @@ class User(BaseModel):
     full_name: str
     role: str
     phone: Optional[str] = None
+    company_name: Optional[str] = None  # For locateur
+    tenant_id: Optional[str] = None  # Links employee to their locateur
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserCreate(BaseModel):
@@ -58,6 +60,20 @@ class UserCreate(BaseModel):
     password: str
     full_name: str
     role: str
+    phone: Optional[str] = None
+    company_name: Optional[str] = None
+
+class LocateurRegister(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+    company_name: str
+    phone: Optional[str] = None
+
+class EmployeeCreate(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
     phone: Optional[str] = None
 
 class UserLogin(BaseModel):
@@ -72,6 +88,7 @@ class Token(BaseModel):
 class Vehicle(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str  # Links vehicle to locateur
     registration_number: str
     type: str  # sedan, suv, truck, etc.
     make: str
