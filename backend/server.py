@@ -877,14 +877,14 @@ async def get_dashboard_stats(
     # Count stats for this tenant
     total_vehicles = await db.vehicles.count_documents({"tenant_id": tenant_id})
     available_vehicles = await db.vehicles.count_documents({"tenant_id": tenant_id, "status": "available"})
-    rented_vehicles = await db.vehicles.count_documents({"status": "rented"})
-    total_clients = await db.clients.count_documents({})
-    active_contracts = await db.contracts.count_documents({"status": "active"})
+    rented_vehicles = await db.vehicles.count_documents({"tenant_id": tenant_id, "status": "rented"})
+    active_contracts = await db.contracts.count_documents({"tenant_id": tenant_id, "status": "active"})
     
     # Revenue calculation (last 30 days)
     thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
     recent_payments = await db.payments.find(
         {
+            "tenant_id": tenant_id,
             "status": "completed",
             "payment_date": {"$gte": thirty_days_ago}
         },
@@ -894,16 +894,22 @@ async def get_dashboard_stats(
     total_revenue = sum(p['amount'] for p in recent_payments)
     
     # Pending infractions
-    pending_infractions = await db.infractions.count_documents({"status": "pending"})
+    pending_infractions = await db.infractions.count_documents({"tenant_id": tenant_id, "status": "pending"})
     
     # Upcoming maintenance
-    upcoming_maintenance = await db.maintenance.count_documents({"status": "scheduled"})
+    upcoming_maintenance = await db.maintenance.count_documents({"tenant_id": tenant_id, "status": "scheduled"})
+    
+    # Count employees for this locateur
+    if current_user.role == UserRole.LOCATEUR:
+        total_employees = await db.users.count_documents({"tenant_id": current_user.id, "role": UserRole.EMPLOYEE})
+    else:
+        total_employees = 0
     
     return {
         "total_vehicles": total_vehicles,
         "available_vehicles": available_vehicles,
         "rented_vehicles": rented_vehicles,
-        "total_clients": total_clients,
+        "total_employees": total_employees,
         "active_contracts": active_contracts,
         "total_revenue_30d": total_revenue,
         "pending_infractions": pending_infractions,
@@ -912,9 +918,10 @@ async def get_dashboard_stats(
 
 @api_router.get("/reports/fleet")
 async def get_fleet_report(
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
-    vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
+    tenant_id = get_tenant_id(current_user)
+    vehicles = await db.vehicles.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
     
     # Group by status
     status_breakdown = {}
@@ -936,15 +943,17 @@ async def get_fleet_report(
 
 @api_router.get("/reports/financial")
 async def get_financial_report(
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR]))
 ):
-    # Get all payments
-    payments = await db.payments.find({"status": "completed"}, {"_id": 0}).to_list(10000)
+    tenant_id = get_tenant_id(current_user)
+    
+    # Get all payments for this tenant
+    payments = await db.payments.find({"tenant_id": tenant_id, "status": "completed"}, {"_id": 0}).to_list(10000)
     
     total_revenue = sum(p['amount'] for p in payments)
     
     # Get maintenance costs
-    maintenances = await db.maintenance.find({"status": "completed"}, {"_id": 0}).to_list(10000)
+    maintenances = await db.maintenance.find({"tenant_id": tenant_id, "status": "completed"}, {"_id": 0}).to_list(10000)
     total_maintenance_cost = sum(m['cost'] for m in maintenances)
     
     # Group payments by month
@@ -962,7 +971,29 @@ async def get_financial_report(
         "monthly_revenue": monthly_revenue
     }
 
-# ==================== SUPERADMIN ROUTES ====================
+# ==================== SUPERADMIN ROUTES (Platform Management Only) ====================
+
+@api_router.get("/admin/locateurs")
+async def get_all_locateurs(
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
+):
+    """Get all registered locateurs with their stats"""
+    locateurs = await db.users.find(
+        {"role": UserRole.LOCATEUR},
+        {"_id": 0, "password": 0}
+    ).to_list(1000)
+    
+    # Enrich with stats
+    for loc in locateurs:
+        if loc.get('created_at') and isinstance(loc['created_at'], str):
+            loc['created_at'] = datetime.fromisoformat(loc['created_at'])
+        
+        # Count stats for this locateur
+        loc['vehicle_count'] = await db.vehicles.count_documents({"tenant_id": loc['id']})
+        loc['employee_count'] = await db.users.count_documents({"tenant_id": loc['id'], "role": UserRole.EMPLOYEE})
+        loc['contract_count'] = await db.contracts.count_documents({"tenant_id": loc['id']})
+    
+    return locateurs
 
 @api_router.get("/admin/users")
 async def get_all_users(
