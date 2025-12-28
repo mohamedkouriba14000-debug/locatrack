@@ -120,22 +120,24 @@ class VehicleCreate(BaseModel):
 class Client(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    national_id: str
-    driver_license: str
-    license_expiry: datetime
-    address: str
-    emergency_contact: Optional[str] = None
-    verified: bool = False
+    tenant_id: str  # Links client to locateur
+    full_name: str
+    phone: str
+    license_number: str
+    license_issue_date: datetime
+    license_image_url: Optional[str] = None  # URL or base64 of license copy
+    address: Optional[str] = None
+    notes: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ClientCreate(BaseModel):
-    user_id: str
-    national_id: str
-    driver_license: str
-    license_expiry: datetime
-    address: str
-    emergency_contact: Optional[str] = None
+    full_name: str
+    phone: str
+    license_number: str
+    license_issue_date: datetime
+    license_image_url: Optional[str] = None
+    address: Optional[str] = None
+    notes: Optional[str] = None
 
 class Contract(BaseModel):
     model_config = ConfigDict(extra="ignore")
