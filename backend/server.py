@@ -471,15 +471,7 @@ async def verify_client(
 
 @api_router.get("/contracts", response_model=List[Contract])
 async def get_contracts(current_user: User = Depends(get_current_user)):
-    query = {}
-    if current_user.role == UserRole.CLIENT:
-        client_doc = await db.clients.find_one({"user_id": current_user.id}, {"_id": 0})
-        if client_doc:
-            query = {"client_id": client_doc['id']}
-        else:
-            return []
-    
-    contracts = await db.contracts.find(query, {"_id": 0}).to_list(1000)
+    contracts = await db.contracts.find({}, {"_id": 0}).to_list(1000)
     for c in contracts:
         for date_field in ['created_at', 'start_date', 'end_date', 'signed_at']:
             if c.get(date_field) and isinstance(c[date_field], str):
