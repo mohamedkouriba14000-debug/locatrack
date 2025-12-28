@@ -18,7 +18,8 @@ import {
   Languages,
   MessageCircle,
   Crown,
-  Sparkles
+  Sparkles,
+  Building2
 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -31,10 +32,12 @@ const Layout = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   
   useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 10000); // Poll every 10 seconds
-    return () => clearInterval(interval);
-  }, []);
+    if (user?.role !== 'superadmin') {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
   
   const fetchUnreadCount = async () => {
     try {
@@ -45,20 +48,43 @@ const Layout = ({ children }) => {
     }
   };
   
-  const menuItems = [
-    { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard', roles: ['superadmin', 'admin', 'employee'] },
-    { icon: Crown, label: language === 'fr' ? 'Super Admin' : 'المدير العام', path: '/admin', roles: ['superadmin'] },
-    { icon: Car, label: t('fleet'), path: '/fleet', roles: ['superadmin', 'admin', 'employee'] },
-    { icon: Users, label: language === 'fr' ? 'Employés' : 'الموظفون', path: '/employees', roles: ['superadmin', 'admin'] },
-    { icon: Calendar, label: t('reservations'), path: '/reservations', roles: ['superadmin', 'admin', 'employee'] },
-    { icon: FileText, label: t('contracts'), path: '/contracts', roles: ['superadmin', 'admin', 'employee'] },
-    { icon: CreditCard, label: t('payments'), path: '/payments', roles: ['superadmin', 'admin', 'employee'] },
-    { icon: Wrench, label: t('maintenance'), path: '/maintenance', roles: ['superadmin', 'admin', 'employee'] },
-    { icon: AlertTriangle, label: t('infractions'), path: '/infractions', roles: ['superadmin', 'admin', 'employee'] },
-    { icon: BarChart3, label: t('reports'), path: '/reports', roles: ['superadmin', 'admin'] },
-  ];
+  // Menu items based on role
+  const getMenuItems = () => {
+    // SuperAdmin only sees platform management
+    if (user?.role === 'superadmin') {
+      return [
+        { icon: Crown, label: language === 'fr' ? 'Gestion Plateforme' : 'إدارة المنصة', path: '/admin' },
+      ];
+    }
+    
+    // Locateur sees everything including employees
+    if (user?.role === 'locateur') {
+      return [
+        { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard' },
+        { icon: Car, label: t('fleet'), path: '/fleet' },
+        { icon: Users, label: language === 'fr' ? 'Employés' : 'الموظفون', path: '/employees' },
+        { icon: Calendar, label: t('reservations'), path: '/reservations' },
+        { icon: FileText, label: t('contracts'), path: '/contracts' },
+        { icon: CreditCard, label: t('payments'), path: '/payments' },
+        { icon: Wrench, label: t('maintenance'), path: '/maintenance' },
+        { icon: AlertTriangle, label: t('infractions'), path: '/infractions' },
+        { icon: BarChart3, label: t('reports'), path: '/reports' },
+      ];
+    }
+    
+    // Employee sees operational pages only (no employees section)
+    return [
+      { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard' },
+      { icon: Car, label: t('fleet'), path: '/fleet' },
+      { icon: Calendar, label: t('reservations'), path: '/reservations' },
+      { icon: FileText, label: t('contracts'), path: '/contracts' },
+      { icon: CreditCard, label: t('payments'), path: '/payments' },
+      { icon: Wrench, label: t('maintenance'), path: '/maintenance' },
+      { icon: AlertTriangle, label: t('infractions'), path: '/infractions' },
+    ];
+  };
   
-  const filteredMenuItems = menuItems.filter(item => item.roles.includes(user?.role));
+  const menuItems = getMenuItems();
   
   const handleLogout = () => {
     logout();
@@ -68,8 +94,24 @@ const Layout = ({ children }) => {
   const getRoleBadge = (role) => {
     switch(role) {
       case 'superadmin': return '👑 Super Admin';
-      case 'admin': return '🔑 Admin';
+      case 'locateur': return '🏢 ' + (language === 'fr' ? 'Locateur' : 'مؤجر');
       default: return '👤 ' + (language === 'fr' ? 'Employé' : 'موظف');
+    }
+  };
+  
+  const getRoleColor = (role) => {
+    switch(role) {
+      case 'superadmin': return 'from-amber-50 to-amber-100 border-amber-200';
+      case 'locateur': return 'from-emerald-50 to-emerald-100 border-emerald-200';
+      default: return 'from-blue-50 to-blue-100 border-blue-200';
+    }
+  };
+  
+  const getRoleTextColor = (role) => {
+    switch(role) {
+      case 'superadmin': return 'text-amber-600';
+      case 'locateur': return 'text-emerald-600';
+      default: return 'text-blue-600';
     }
   };
   
