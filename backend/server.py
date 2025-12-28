@@ -788,12 +788,14 @@ async def create_maintenance(
 async def get_maintenance_alerts(
     current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
+    tenant_id = get_tenant_id(current_user)
     # Get upcoming maintenance within next 7 days
     today = datetime.now(timezone.utc)
     week_later = today + timedelta(days=7)
     
     upcoming = await db.maintenance.find(
         {
+            "tenant_id": tenant_id,
             "status": "scheduled",
             "scheduled_date": {
                 "$gte": today.isoformat(),
@@ -809,10 +811,11 @@ async def get_maintenance_alerts(
 async def update_maintenance(
     maintenance_id: str,
     update_data: dict,
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
+    tenant_id = get_tenant_id(current_user)
     result = await db.maintenance.update_one(
-        {"id": maintenance_id},
+        {"id": maintenance_id, "tenant_id": tenant_id},
         {"$set": update_data}
     )
     if result.matched_count == 0:
@@ -823,9 +826,10 @@ async def update_maintenance(
 
 @api_router.get("/infractions", response_model=List[Infraction])
 async def get_infractions(
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
-    infractions = await db.infractions.find({}, {"_id": 0}).to_list(1000)
+    tenant_id = get_tenant_id(current_user)
+    infractions = await db.infractions.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
     for i in infractions:
         for date_field in ['created_at', 'date']:
             if i.get(date_field) and isinstance(i[date_field], str):
@@ -835,9 +839,12 @@ async def get_infractions(
 @api_router.post("/infractions", response_model=Infraction)
 async def create_infraction(
     infraction_create: InfractionCreate,
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
-    infraction_obj = Infraction(**infraction_create.model_dump())
+    tenant_id = get_tenant_id(current_user)
+    infraction_data = infraction_create.model_dump()
+    infraction_data['tenant_id'] = tenant_id
+    infraction_obj = Infraction(**infraction_data)
     doc = infraction_obj.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     doc['date'] = doc['date'].isoformat()
@@ -849,10 +856,11 @@ async def create_infraction(
 async def update_infraction(
     infraction_id: str,
     update_data: dict,
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
+    tenant_id = get_tenant_id(current_user)
     result = await db.infractions.update_one(
-        {"id": infraction_id},
+        {"id": infraction_id, "tenant_id": tenant_id},
         {"$set": update_data}
     )
     if result.matched_count == 0:
@@ -863,11 +871,12 @@ async def update_infraction(
 
 @api_router.get("/reports/dashboard")
 async def get_dashboard_stats(
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
-    # Count stats
-    total_vehicles = await db.vehicles.count_documents({})
-    available_vehicles = await db.vehicles.count_documents({"status": "available"})
+    tenant_id = get_tenant_id(current_user)
+    # Count stats for this tenant
+    total_vehicles = await db.vehicles.count_documents({"tenant_id": tenant_id})
+    available_vehicles = await db.vehicles.count_documents({"tenant_id": tenant_id, "status": "available"})
     rented_vehicles = await db.vehicles.count_documents({"status": "rented"})
     total_clients = await db.clients.count_documents({})
     active_contracts = await db.contracts.count_documents({"status": "active"})
