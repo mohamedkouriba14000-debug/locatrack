@@ -229,12 +229,14 @@ class MaintenanceCreate(BaseModel):
 class Infraction(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str  # Links infraction to locateur
     vehicle_id: str
     contract_id: Optional[str] = None
     type: str
     description: str
     amount: float
     date: datetime
+    location: Optional[str] = None
     status: str = "pending"  # pending, paid, disputed
     paid_by: Optional[str] = None  # client or company
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
