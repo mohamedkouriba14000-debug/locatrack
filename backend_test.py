@@ -19,12 +19,11 @@ class VehicleTrackAPITester:
         self.tests_passed = 0
         self.failed_tests = []
         
-        # Test credentials
+        # Test credentials for SaaS multi-tenant platform
         self.credentials = {
             'superadmin': {'email': 'superadmin@locatrack.dz', 'password': 'superadmin123'},
-            'admin': {'email': 'admin@vehicletrack.dz', 'password': 'admin123'},
-            'employee': {'email': 'employee@vehicletrack.dz', 'password': 'employee123'},
-            'client': {'email': 'client@vehicletrack.dz', 'password': 'client123'}
+            'locateur': {'email': 'test.locateur@example.com', 'password': 'password123'},
+            'employee': {'email': 'employee@test.com', 'password': 'employee123'}
         }
 
     def log_test(self, name: str, success: bool, details: str = ""):
