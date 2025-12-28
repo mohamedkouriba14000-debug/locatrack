@@ -1042,6 +1042,21 @@ async def delete_user(
     if user_id == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot delete your own account")
     
+    # Get user to check if it's a locateur (to delete all their data)
+    user_to_delete = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user_to_delete:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # If deleting a locateur, delete all their data
+    if user_to_delete.get('role') == UserRole.LOCATEUR:
+        await db.vehicles.delete_many({"tenant_id": user_id})
+        await db.contracts.delete_many({"tenant_id": user_id})
+        await db.reservations.delete_many({"tenant_id": user_id})
+        await db.payments.delete_many({"tenant_id": user_id})
+        await db.maintenance.delete_many({"tenant_id": user_id})
+        await db.infractions.delete_many({"tenant_id": user_id})
+        await db.users.delete_many({"tenant_id": user_id})  # Delete employees
+    
     result = await db.users.delete_one({"id": user_id})
     
     if result.deleted_count == 0:
@@ -1057,24 +1072,21 @@ async def delete_user(
 async def get_admin_stats(
     current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
 ):
-    """Get platform statistics (SuperAdmin only)"""
-    total_users = await db.users.count_documents({})
-    admins = await db.users.count_documents({"role": "admin"})
-    employees = await db.users.count_documents({"role": "employee"})
-    superadmins = await db.users.count_documents({"role": "superadmin"})
+    """Get platform statistics (SuperAdmin only) - Only locateurs and employees"""
+    total_locateurs = await db.users.count_documents({"role": UserRole.LOCATEUR})
+    total_employees = await db.users.count_documents({"role": UserRole.EMPLOYEE})
+    superadmins = await db.users.count_documents({"role": UserRole.SUPERADMIN})
     
+    # Platform-wide stats
     total_vehicles = await db.vehicles.count_documents({})
     total_contracts = await db.contracts.count_documents({})
-    total_reservations = await db.reservations.count_documents({})
     
     return {
-        "total_users": total_users,
+        "total_locateurs": total_locateurs,
+        "total_employees": total_employees,
         "superadmins": superadmins,
-        "admins": admins,
-        "employees": employees,
-        "total_vehicles": total_vehicles,
-        "total_contracts": total_contracts,
-        "total_reservations": total_reservations
+        "total_vehicles_platform": total_vehicles,
+        "total_contracts_platform": total_contracts
     }
 
 # ==================== MESSAGING ROUTES ====================
