@@ -539,15 +539,7 @@ async def sign_contract(
 
 @api_router.get("/reservations", response_model=List[Reservation])
 async def get_reservations(current_user: User = Depends(get_current_user)):
-    query = {}
-    if current_user.role == UserRole.CLIENT:
-        client_doc = await db.clients.find_one({"user_id": current_user.id}, {"_id": 0})
-        if client_doc:
-            query = {"client_id": client_doc['id']}
-        else:
-            return []
-    
-    reservations = await db.reservations.find(query, {"_id": 0}).to_list(1000)
+    reservations = await db.reservations.find({}, {"_id": 0}).to_list(1000)
     for r in reservations:
         for date_field in ['created_at', 'start_date', 'end_date']:
             if r.get(date_field) and isinstance(r[date_field], str):
