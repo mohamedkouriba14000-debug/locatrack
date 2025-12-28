@@ -665,6 +665,20 @@ async def get_maintenance_alerts(
     
     return {"alerts": upcoming, "count": len(upcoming)}
 
+@api_router.put("/maintenance/{maintenance_id}")
+async def update_maintenance(
+    maintenance_id: str,
+    update_data: dict,
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+):
+    result = await db.maintenance.update_one(
+        {"id": maintenance_id},
+        {"$set": update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Maintenance not found")
+    return {"message": "Maintenance updated"}
+
 # ==================== INFRACTION ROUTES ====================
 
 @api_router.get("/infractions", response_model=List[Infraction])
