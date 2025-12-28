@@ -23,7 +23,7 @@ class VehicleTrackAPITester:
         self.credentials = {
             'superadmin': {'email': 'superadmin@locatrack.dz', 'password': 'superadmin123'},
             'locateur': {'email': 'test.locateur@example.com', 'password': 'password123'},
-            'employee': {'email': 'employee@test.com', 'password': 'employee123'}
+            'employee': {'email': 'employee@vehicletrack.dz', 'password': 'employee123'}
         }
 
     def log_test(self, name: str, success: bool, details: str = ""):
