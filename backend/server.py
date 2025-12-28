@@ -382,7 +382,7 @@ async def get_vehicles(current_user: User = Depends(get_current_user)):
 @api_router.post("/vehicles", response_model=Vehicle)
 async def create_vehicle(
     vehicle_create: VehicleCreate,
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     vehicle_obj = Vehicle(**vehicle_create.model_dump())
     doc = vehicle_obj.model_dump()
@@ -397,7 +397,7 @@ async def create_vehicle(
 async def update_vehicle(
     vehicle_id: str,
     vehicle_update: VehicleCreate,
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     update_data = vehicle_update.model_dump()
     if update_data.get('insurance_expiry'):
@@ -421,7 +421,7 @@ async def update_vehicle(
 @api_router.delete("/vehicles/{vehicle_id}")
 async def delete_vehicle(
     vehicle_id: str,
-    current_user: User = Depends(require_role([UserRole.ADMIN]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN]))
 ):
     result = await db.vehicles.delete_one({"id": vehicle_id})
     if result.deleted_count == 0:
@@ -432,7 +432,7 @@ async def delete_vehicle(
 
 @api_router.get("/clients", response_model=List[Client])
 async def get_clients(
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     clients = await db.clients.find({}, {"_id": 0}).to_list(1000)
     for c in clients:
@@ -457,7 +457,7 @@ async def create_client(
 @api_router.put("/clients/{client_id}/verify")
 async def verify_client(
     client_id: str,
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     result = await db.clients.update_one(
         {"id": client_id},
@@ -489,7 +489,7 @@ async def get_contracts(current_user: User = Depends(get_current_user)):
 @api_router.post("/contracts", response_model=Contract)
 async def create_contract(
     contract_create: ContractCreate,
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     # Calculate total amount
     days = (contract_create.end_date - contract_create.start_date).days
@@ -585,7 +585,7 @@ async def create_reservation(
 async def update_reservation_status(
     reservation_id: str,
     status: str,
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     result = await db.reservations.update_one(
         {"id": reservation_id},
@@ -599,7 +599,7 @@ async def update_reservation_status(
 
 @api_router.get("/payments", response_model=List[Payment])
 async def get_payments(
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     payments = await db.payments.find({}, {"_id": 0}).to_list(1000)
     for p in payments:
@@ -629,7 +629,7 @@ async def create_payment(
 
 @api_router.get("/maintenance", response_model=List[Maintenance])
 async def get_maintenance(
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     maintenances = await db.maintenance.find({}, {"_id": 0}).to_list(1000)
     for m in maintenances:
@@ -641,7 +641,7 @@ async def get_maintenance(
 @api_router.post("/maintenance", response_model=Maintenance)
 async def create_maintenance(
     maintenance_create: MaintenanceCreate,
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     maintenance_obj = Maintenance(**maintenance_create.model_dump())
     doc = maintenance_obj.model_dump()
@@ -662,7 +662,7 @@ async def create_maintenance(
 
 @api_router.get("/maintenance/alerts")
 async def get_maintenance_alerts(
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     # Get upcoming maintenance within next 7 days
     today = datetime.now(timezone.utc)
@@ -685,7 +685,7 @@ async def get_maintenance_alerts(
 
 @api_router.get("/infractions", response_model=List[Infraction])
 async def get_infractions(
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     infractions = await db.infractions.find({}, {"_id": 0}).to_list(1000)
     for i in infractions:
@@ -697,7 +697,7 @@ async def get_infractions(
 @api_router.post("/infractions", response_model=Infraction)
 async def create_infraction(
     infraction_create: InfractionCreate,
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     infraction_obj = Infraction(**infraction_create.model_dump())
     doc = infraction_obj.model_dump()
@@ -711,7 +711,7 @@ async def create_infraction(
 
 @api_router.get("/reports/dashboard")
 async def get_dashboard_stats(
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     # Count stats
     total_vehicles = await db.vehicles.count_documents({})
@@ -751,7 +751,7 @@ async def get_dashboard_stats(
 
 @api_router.get("/reports/fleet")
 async def get_fleet_report(
-    current_user: User = Depends(require_role([UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
 ):
     vehicles = await db.vehicles.find({}, {"_id": 0}).to_list(1000)
     
@@ -775,7 +775,7 @@ async def get_fleet_report(
 
 @api_router.get("/reports/financial")
 async def get_financial_report(
-    current_user: User = Depends(require_role([UserRole.ADMIN]))
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN]))
 ):
     # Get all payments
     payments = await db.payments.find({"status": "completed"}, {"_id": 0}).to_list(10000)
