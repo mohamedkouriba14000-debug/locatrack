@@ -112,7 +112,7 @@ class VehicleTrackAPITester:
         self.log_test("Invalid login rejection", invalid_success, 
                      "Correctly rejected invalid credentials")
         
-        return len(self.tokens) == 3
+        return len(self.tokens) == 4
 
     def test_dashboard_stats(self):
         """Test dashboard statistics endpoint"""
