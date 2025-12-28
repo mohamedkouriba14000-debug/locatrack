@@ -697,7 +697,7 @@ class VehicleTrackAPITester:
         }
         
         validation_success, validation_response = self.make_request(
-            'POST', 'vehicles', invalid_vehicle, token=self.tokens.get('admin'),
+            'POST', 'vehicles', invalid_vehicle, token=self.tokens.get('locateur'),
             expected_status=422
         )
         self.log_test("Data validation for invalid vehicle", validation_success,
@@ -710,7 +710,7 @@ class VehicleTrackAPITester:
         }
         
         incomplete_success, incomplete_response = self.make_request(
-            'POST', 'vehicles', incomplete_vehicle, token=self.tokens.get('admin'),
+            'POST', 'vehicles', incomplete_vehicle, token=self.tokens.get('locateur'),
             expected_status=422
         )
         self.log_test("Validation for incomplete data", incomplete_success,
