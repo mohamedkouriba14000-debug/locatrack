@@ -554,13 +554,14 @@ async def delete_vehicle(
         raise HTTPException(status_code=404, detail="Vehicle not found")
     return {"message": "Vehicle deleted successfully"}
 
-# ==================== CLIENT ROUTES ====================
+# ==================== CLIENT ROUTES (simplified) ====================
 
 @api_router.get("/clients", response_model=List[Client])
 async def get_clients(
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
-    clients = await db.clients.find({}, {"_id": 0}).to_list(1000)
+    tenant_id = get_tenant_id(current_user)
+    clients = await db.clients.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
     for c in clients:
         for date_field in ['created_at', 'license_expiry']:
             if c.get(date_field) and isinstance(c[date_field], str):
@@ -570,34 +571,27 @@ async def get_clients(
 @api_router.post("/clients", response_model=Client)
 async def create_client(
     client_create: ClientCreate,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
+    tenant_id = get_tenant_id(current_user)
     client_obj = Client(**client_create.model_dump())
     doc = client_obj.model_dump()
+    doc['tenant_id'] = tenant_id
     doc['created_at'] = doc['created_at'].isoformat()
     doc['license_expiry'] = doc['license_expiry'].isoformat()
     
     await db.clients.insert_one(doc)
     return client_obj
 
-@api_router.put("/clients/{client_id}/verify")
-async def verify_client(
-    client_id: str,
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
-):
-    result = await db.clients.update_one(
-        {"id": client_id},
-        {"$set": {"verified": True}}
-    )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Client not found")
-    return {"message": "Client verified successfully"}
-
 # ==================== CONTRACT ROUTES ====================
 
 @api_router.get("/contracts", response_model=List[Contract])
 async def get_contracts(current_user: User = Depends(get_current_user)):
-    contracts = await db.contracts.find({}, {"_id": 0}).to_list(1000)
+    tenant_id = get_tenant_id(current_user)
+    if not tenant_id:
+        return []
+    
+    contracts = await db.contracts.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
     for c in contracts:
         for date_field in ['created_at', 'start_date', 'end_date', 'signed_at']:
             if c.get(date_field) and isinstance(c[date_field], str):
@@ -607,7 +601,7 @@ async def get_contracts(current_user: User = Depends(get_current_user)):
 @api_router.post("/contracts", response_model=Contract)
 async def create_contract(
     contract_create: ContractCreate,
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
     # Calculate total amount
     days = (contract_create.end_date - contract_create.start_date).days
