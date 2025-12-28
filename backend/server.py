@@ -607,8 +607,10 @@ async def create_contract(
     days = (contract_create.end_date - contract_create.start_date).days
     total_amount = (days * contract_create.daily_rate) + contract_create.insurance_fee + contract_create.additional_fees
     
+    tenant_id = get_tenant_id(current_user)
     contract_data = contract_create.model_dump()
     contract_data['total_amount'] = total_amount
+    contract_data['tenant_id'] = tenant_id
     contract_obj = Contract(**contract_data)
     
     doc = contract_obj.model_dump()
@@ -625,8 +627,9 @@ async def create_contract(
 async def sign_contract(
     contract_id: str,
     signature: ContractSign,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
+    tenant_id = get_tenant_id(current_user)
     update_data = {
         "signed": True,
         "signature_data": signature.signature_data,
@@ -635,7 +638,7 @@ async def sign_contract(
     }
     
     result = await db.contracts.update_one(
-        {"id": contract_id},
+        {"id": contract_id, "tenant_id": tenant_id},
         {"$set": update_data}
     )
     
@@ -659,7 +662,11 @@ async def sign_contract(
 
 @api_router.get("/reservations", response_model=List[Reservation])
 async def get_reservations(current_user: User = Depends(get_current_user)):
-    reservations = await db.reservations.find({}, {"_id": 0}).to_list(1000)
+    tenant_id = get_tenant_id(current_user)
+    if not tenant_id:
+        return []
+    
+    reservations = await db.reservations.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
     for r in reservations:
         for date_field in ['created_at', 'start_date', 'end_date']:
             if r.get(date_field) and isinstance(r[date_field], str):
@@ -669,14 +676,18 @@ async def get_reservations(current_user: User = Depends(get_current_user)):
 @api_router.post("/reservations", response_model=Reservation)
 async def create_reservation(
     reservation_create: ReservationCreate,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
+    tenant_id = get_tenant_id(current_user)
+    
     # Check vehicle availability
-    vehicle = await db.vehicles.find_one({"id": reservation_create.vehicle_id}, {"_id": 0})
+    vehicle = await db.vehicles.find_one({"id": reservation_create.vehicle_id, "tenant_id": tenant_id}, {"_id": 0})
     if not vehicle or vehicle['status'] != 'available':
         raise HTTPException(status_code=400, detail="Vehicle not available")
     
-    reservation_obj = Reservation(**reservation_create.model_dump())
+    reservation_data = reservation_create.model_dump()
+    reservation_data['tenant_id'] = tenant_id
+    reservation_obj = Reservation(**reservation_data)
     doc = reservation_obj.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     doc['start_date'] = doc['start_date'].isoformat()
