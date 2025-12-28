@@ -140,6 +140,7 @@ class ClientCreate(BaseModel):
 class Contract(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str  # Links contract to locateur
     client_id: str
     vehicle_id: str
     start_date: datetime
