@@ -207,6 +207,7 @@ class PaymentCreate(BaseModel):
 class Maintenance(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tenant_id: str  # Links maintenance to locateur
     vehicle_id: str
     type: str  # preventive, emergency, repair
     description: str
