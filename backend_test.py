@@ -722,7 +722,7 @@ class VehicleTrackAPITester:
         
         # Test non-existent resource (GET method)
         not_found_success, not_found_response = self.make_request(
-            'GET', 'vehicles/non-existent-id', token=self.tokens.get('admin'),
+            'GET', 'vehicles/non-existent-id', token=self.tokens.get('locateur'),
             expected_status=404
         )
         self.log_test("404 for non-existent resource", not_found_success,
