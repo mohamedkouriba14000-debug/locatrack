@@ -654,20 +654,20 @@ class VehicleTrackAPITester:
         """Test role-based access control"""
         print("\n🔒 Testing Role-Based Access Control...")
         
-        # Admin-only endpoints
-        admin_endpoints = [
+        # Admin-only endpoints (now Locateur-only)
+        locateur_endpoints = [
             ('GET', 'reports/financial'),
             ('DELETE', f'vehicles/{self.test_data.get("test_vehicle_id", "test")}')
         ]
         
-        for method, endpoint in admin_endpoints:
-            # Test admin access
-            admin_success, admin_response = self.make_request(
-                method, endpoint, token=self.tokens.get('admin'),
+        for method, endpoint in locateur_endpoints:
+            # Test locateur access
+            locateur_success, locateur_response = self.make_request(
+                method, endpoint, token=self.tokens.get('locateur'),
                 expected_status=200 if method == 'GET' else 200
             )
             
-            # Test employee access (should fail for some)
+            # Test employee access (should work for some, fail for financial)
             if 'financial' in endpoint:
                 emp_success, emp_response = self.make_request(
                     method, endpoint, token=self.tokens.get('employee'),
@@ -676,13 +676,13 @@ class VehicleTrackAPITester:
                 self.log_test(f"Employee denied access to {endpoint}", emp_success,
                             "Correct access restriction")
             
-            # Test client access (should fail)
-            client_success, client_response = self.make_request(
-                method, endpoint, token=self.tokens.get('client'),
+            # Test SuperAdmin access (should fail - platform management only)
+            superadmin_success, superadmin_response = self.make_request(
+                method, endpoint, token=self.tokens.get('superadmin'),
                 expected_status=403
             )
-            self.log_test(f"Client denied access to {endpoint}", client_success,
-                        "Correct access restriction")
+            self.log_test(f"SuperAdmin denied access to {endpoint}", superadmin_success,
+                        "SuperAdmin correctly restricted to platform management")
 
     def test_data_validation(self):
         """Test API data validation"""
