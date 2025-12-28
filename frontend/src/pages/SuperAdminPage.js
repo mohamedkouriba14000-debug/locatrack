@@ -8,8 +8,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Search, Users, Shield, UserCog, Trash2, Edit, Crown, BarChart3 } from 'lucide-react';
+import { Search, Building2, Users, Car, FileText, Trash2, Edit, Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatApiError } from '../utils/errorHandler';
 
@@ -18,23 +17,25 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const SuperAdminPage = () => {
   const { getAuthHeaders } = useAuth();
   const { language } = useLanguage();
-  const [users, setUsers] = useState([]);
+  const [locateurs, setLocateurs] = useState([]);
   const [stats, setStats] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ full_name: '', email: '', role: '', phone: '' });
+  const [expandedLocateur, setExpandedLocateur] = useState(null);
+  const [employees, setEmployees] = useState({});
+  const [formData, setFormData] = useState({ full_name: '', email: '', phone: '', company_name: '' });
   
   useEffect(() => { fetchData(); }, []);
   
   const fetchData = async () => {
     try {
-      const [usersRes, statsRes] = await Promise.all([
-        axios.get(`${API}/admin/users`, { headers: getAuthHeaders() }),
+      const [locateursRes, statsRes] = await Promise.all([
+        axios.get(`${API}/admin/locateurs`, { headers: getAuthHeaders() }),
         axios.get(`${API}/admin/stats`, { headers: getAuthHeaders() })
       ]);
-      setUsers(usersRes.data);
+      setLocateurs(locateursRes.data);
       setStats(statsRes.data);
     } catch (error) {
       toast.error(formatApiError(error));
@@ -43,9 +44,30 @@ const SuperAdminPage = () => {
     }
   };
   
+  const fetchEmployees = async (locateurId) => {
+    if (employees[locateurId]) {
+      setExpandedLocateur(expandedLocateur === locateurId ? null : locateurId);
+      return;
+    }
+    
+    try {
+      const response = await axios.get(`${API}/admin/users`, { headers: getAuthHeaders() });
+      const locateurEmployees = response.data.filter(u => u.tenant_id === locateurId && u.role === 'employee');
+      setEmployees({ ...employees, [locateurId]: locateurEmployees });
+      setExpandedLocateur(locateurId);
+    } catch (error) {
+      toast.error(formatApiError(error));
+    }
+  };
+  
   const handleEdit = (user) => {
     setEditingUser(user);
-    setFormData({ full_name: user.full_name, email: user.email, role: user.role, phone: user.phone || '' });
+    setFormData({ 
+      full_name: user.full_name, 
+      email: user.email, 
+      phone: user.phone || '',
+      company_name: user.company_name || ''
+    });
     setShowEditDialog(true);
   };
   
@@ -62,7 +84,7 @@ const SuperAdminPage = () => {
   };
   
   const handleDelete = async (userId, userName) => {
-    if (!window.confirm(`${language === 'fr' ? 'Supprimer' : 'حذف'} ${userName}?`)) return;
+    if (!window.confirm(`${language === 'fr' ? 'Supprimer' : 'حذف'} ${userName}? ${language === 'fr' ? 'Toutes les données seront supprimées.' : 'سيتم حذف جميع البيانات.'}`)) return;
     try {
       await axios.delete(`${API}/admin/users/${userId}`, { headers: getAuthHeaders() });
       toast.success(language === 'fr' ? 'Utilisateur supprimé' : 'تم حذف المستخدم');
@@ -72,25 +94,10 @@ const SuperAdminPage = () => {
     }
   };
   
-  const getRoleIcon = (role) => {
-    switch(role) {
-      case 'superadmin': return <Crown className="text-amber-500" size={20} />;
-      case 'admin': return <Shield className="text-red-500" size={20} />;
-      default: return <UserCog className="text-blue-500" size={20} />;
-    }
-  };
-  
-  const getRoleBadgeColor = (role) => {
-    switch(role) {
-      case 'superadmin': return 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-800 border-amber-300';
-      case 'admin': return 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border-red-300';
-      default: return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border-blue-300';
-    }
-  };
-  
-  const filteredUsers = users.filter(u => 
-    u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredLocateurs = locateurs.filter(l =>
+    l.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    l.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    l.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
   if (loading) return <Layout><div className="text-center py-12">{language === 'fr' ? 'Chargement...' : 'جاري التحميل...'}</div></Layout>;
@@ -100,31 +107,20 @@ const SuperAdminPage = () => {
       <div>
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-heading font-bold text-4xl uppercase text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-red-600">
-            {language === 'fr' ? '👑 Super Admin' : '👑 المدير العام'}
+            👑 {language === 'fr' ? 'Administration Plateforme' : 'إدارة المنصة'}
           </h1>
         </div>
         
-        {/* Stats Cards */}
+        {/* Platform Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-amber-600 font-medium">{language === 'fr' ? 'Total Utilisateurs' : 'إجمالي المستخدمين'}</p>
-                  <p className="text-3xl font-bold text-amber-800">{stats.total_users || 0}</p>
+                  <p className="text-sm text-amber-600 font-medium">{language === 'fr' ? 'Locateurs' : 'المؤجرون'}</p>
+                  <p className="text-3xl font-bold text-amber-800">{stats.total_locateurs || 0}</p>
                 </div>
-                <Users className="text-amber-500" size={32} />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-red-600 font-medium">Admins</p>
-                  <p className="text-3xl font-bold text-red-800">{stats.admins || 0}</p>
-                </div>
-                <Shield className="text-red-500" size={32} />
+                <Building2 className="text-amber-500" size={32} />
               </div>
             </CardContent>
           </Card>
@@ -133,9 +129,9 @@ const SuperAdminPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600 font-medium">{language === 'fr' ? 'Employés' : 'الموظفون'}</p>
-                  <p className="text-3xl font-bold text-blue-800">{stats.employees || 0}</p>
+                  <p className="text-3xl font-bold text-blue-800">{stats.total_employees || 0}</p>
                 </div>
-                <UserCog className="text-blue-500" size={32} />
+                <Users className="text-blue-500" size={32} />
               </div>
             </CardContent>
           </Card>
@@ -143,10 +139,21 @@ const SuperAdminPage = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-emerald-600 font-medium">{language === 'fr' ? 'Véhicules' : 'المركبات'}</p>
-                  <p className="text-3xl font-bold text-emerald-800">{stats.total_vehicles || 0}</p>
+                  <p className="text-sm text-emerald-600 font-medium">{language === 'fr' ? 'Véhicules (total)' : 'المركبات (الإجمالي)'}</p>
+                  <p className="text-3xl font-bold text-emerald-800">{stats.total_vehicles_platform || 0}</p>
                 </div>
-                <BarChart3 className="text-emerald-500" size={32} />
+                <Car className="text-emerald-500" size={32} />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-violet-50 to-violet-100 border-2 border-violet-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-violet-600 font-medium">{language === 'fr' ? 'Contrats (total)' : 'العقود (الإجمالي)'}</p>
+                  <p className="text-3xl font-bold text-violet-800">{stats.total_contracts_platform || 0}</p>
+                </div>
+                <FileText className="text-violet-500" size={32} />
               </div>
             </CardContent>
           </Card>
@@ -157,7 +164,7 @@ const SuperAdminPage = () => {
           <div className="relative">
             <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
             <Input 
-              placeholder={language === 'fr' ? 'Rechercher un utilisateur...' : 'البحث عن مستخدم...'} 
+              placeholder={language === 'fr' ? 'Rechercher un locateur...' : 'البحث عن مؤجر...'} 
               value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
               className="ps-10 h-12 bg-white border-2 border-slate-300 focus:border-amber-500" 
@@ -165,49 +172,103 @@ const SuperAdminPage = () => {
           </div>
         </div>
         
-        {/* Users List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredUsers.map((user) => (
-            <Card key={user.id} className="bg-white border-2 border-slate-200 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className={`p-3 rounded-full ${user.role === 'superadmin' ? 'bg-gradient-to-br from-amber-400 to-amber-600' : user.role === 'admin' ? 'bg-gradient-to-br from-red-400 to-red-600' : 'bg-gradient-to-br from-blue-400 to-blue-600'}`}>
-                    {getRoleIcon(user.role)}
+        {/* Locateurs List */}
+        <div className="space-y-4">
+          {filteredLocateurs.map((locateur) => (
+            <Card key={locateur.id} className="bg-white border-2 border-slate-200 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl">
+                      <Building2 size={28} className="text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl font-bold text-slate-800">{locateur.company_name}</CardTitle>
+                      <p className="text-sm text-slate-500">{locateur.full_name} • {locateur.email}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg font-bold text-slate-800">{user.full_name}</CardTitle>
-                    <p className="text-sm text-slate-500">{user.email}</p>
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => handleEdit(locateur)} variant="outline" size="sm" className="border-2 border-cyan-300 text-cyan-600 hover:bg-cyan-50">
+                      <Edit size={16} />
+                    </Button>
+                    <Button onClick={() => handleDelete(locateur.id, locateur.company_name)} variant="outline" size="sm" className="border-2 border-red-300 text-red-600 hover:bg-red-50">
+                      <Trash2 size={16} />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  <div className={`inline-block px-3 py-1 rounded-lg text-xs font-bold uppercase border-2 ${getRoleBadgeColor(user.role)}`}>
-                    {user.role === 'superadmin' ? '👑 Super Admin' : user.role === 'admin' ? '🔑 Admin' : '👤 ' + (language === 'fr' ? 'Employé' : 'موظف')}
+                {/* Locateur Stats */}
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-center">
+                    <Car size={20} className="mx-auto text-emerald-600 mb-1" />
+                    <p className="text-2xl font-bold text-emerald-700">{locateur.vehicle_count || 0}</p>
+                    <p className="text-xs text-emerald-600">{language === 'fr' ? 'Véhicules' : 'مركبات'}</p>
                   </div>
-                  {user.phone && <p className="text-sm text-slate-600">📞 {user.phone}</p>}
-                  <p className="text-xs text-slate-400">{language === 'fr' ? 'Inscrit le' : 'مسجل في'}: {new Date(user.created_at).toLocaleDateString()}</p>
-                  
-                  {user.role !== 'superadmin' && (
-                    <div className="flex gap-2 mt-4">
-                      <Button onClick={() => handleEdit(user)} variant="outline" size="sm" className="flex-1 border-2 border-cyan-300 text-cyan-600 hover:bg-cyan-50">
-                        <Edit size={16} className="me-1" /> {language === 'fr' ? 'Modifier' : 'تعديل'}
-                      </Button>
-                      <Button onClick={() => handleDelete(user.id, user.full_name)} variant="outline" size="sm" className="border-2 border-red-300 text-red-600 hover:bg-red-50">
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-center">
+                    <Users size={20} className="mx-auto text-blue-600 mb-1" />
+                    <p className="text-2xl font-bold text-blue-700">{locateur.employee_count || 0}</p>
+                    <p className="text-xs text-blue-600">{language === 'fr' ? 'Employés' : 'موظفون'}</p>
+                  </div>
+                  <div className="p-3 bg-violet-50 rounded-lg border border-violet-200 text-center">
+                    <FileText size={20} className="mx-auto text-violet-600 mb-1" />
+                    <p className="text-2xl font-bold text-violet-700">{locateur.contract_count || 0}</p>
+                    <p className="text-xs text-violet-600">{language === 'fr' ? 'Contrats' : 'عقود'}</p>
+                  </div>
                 </div>
+                
+                {/* Employees Toggle */}
+                {locateur.employee_count > 0 && (
+                  <div>
+                    <Button 
+                      onClick={() => fetchEmployees(locateur.id)} 
+                      variant="ghost" 
+                      className="w-full justify-between text-slate-600 hover:text-slate-800 hover:bg-slate-100"
+                    >
+                      <span>{language === 'fr' ? 'Voir les employés' : 'عرض الموظفين'} ({locateur.employee_count})</span>
+                      {expandedLocateur === locateur.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </Button>
+                    
+                    {expandedLocateur === locateur.id && employees[locateur.id] && (
+                      <div className="mt-3 space-y-2 border-t border-slate-200 pt-3">
+                        {employees[locateur.id].map((emp) => (
+                          <div key={emp.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
+                                {emp.full_name?.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="font-medium text-slate-800">{emp.full_name}</p>
+                                <p className="text-xs text-slate-500">{emp.email}</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button onClick={() => handleEdit(emp)} variant="ghost" size="sm" className="text-cyan-600">
+                                <Edit size={14} />
+                              </Button>
+                              <Button onClick={() => handleDelete(emp.id, emp.full_name)} variant="ghost" size="sm" className="text-red-600">
+                                <Trash2 size={14} />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <p className="text-xs text-slate-400 mt-3">
+                  {language === 'fr' ? 'Inscrit le' : 'مسجل في'}: {new Date(locateur.created_at).toLocaleDateString()}
+                </p>
               </CardContent>
             </Card>
           ))}
         </div>
         
-        {filteredUsers.length === 0 && (
+        {filteredLocateurs.length === 0 && (
           <div className="text-center py-12">
-            <Users size={48} className="mx-auto text-slate-300 mb-4" />
-            <p className="text-slate-500">{language === 'fr' ? 'Aucun utilisateur trouvé' : 'لم يتم العثور على مستخدمين'}</p>
+            <Building2 size={48} className="mx-auto text-slate-300 mb-4" />
+            <p className="text-slate-500">{language === 'fr' ? 'Aucun locateur inscrit' : 'لا يوجد مؤجرون مسجلون'}</p>
           </div>
         )}
         
@@ -215,31 +276,27 @@ const SuperAdminPage = () => {
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent className="max-w-md bg-white border-2 border-slate-200">
             <DialogHeader>
-              <DialogTitle className="text-amber-600 font-heading text-2xl">{language === 'fr' ? 'Modifier Utilisateur' : 'تعديل المستخدم'}</DialogTitle>
+              <DialogTitle className="text-amber-600 font-heading text-2xl">{language === 'fr' ? 'Modifier' : 'تعديل'}</DialogTitle>
               <DialogDescription className="text-slate-600">{editingUser?.full_name}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleUpdate} className="space-y-4">
+              {editingUser?.role === 'locateur' && (
+                <div className="space-y-2">
+                  <Label className="text-slate-700 font-semibold">{language === 'fr' ? 'Nom entreprise' : 'اسم الشركة'}</Label>
+                  <Input value={formData.company_name} onChange={(e) => setFormData({...formData, company_name: e.target.value})} className="bg-white border-2 border-slate-300" />
+                </div>
+              )}
               <div className="space-y-2">
                 <Label className="text-slate-700 font-semibold">{language === 'fr' ? 'Nom complet' : 'الاسم الكامل'}</Label>
-                <Input value={formData.full_name} onChange={(e) => setFormData({...formData, full_name: e.target.value})} className="bg-white border-2 border-slate-300 focus:border-amber-500" />
+                <Input value={formData.full_name} onChange={(e) => setFormData({...formData, full_name: e.target.value})} className="bg-white border-2 border-slate-300" />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-700 font-semibold">Email</Label>
-                <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="bg-white border-2 border-slate-300 focus:border-amber-500" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-slate-700 font-semibold">{language === 'fr' ? 'Rôle' : 'الدور'}</Label>
-                <Select value={formData.role} onValueChange={(value) => setFormData({...formData, role: value})}>
-                  <SelectTrigger className="bg-white border-2 border-slate-300"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">🔑 Admin</SelectItem>
-                    <SelectItem value="employee">👤 {language === 'fr' ? 'Employé' : 'موظف'}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="bg-white border-2 border-slate-300" />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-700 font-semibold">{language === 'fr' ? 'Téléphone' : 'الهاتف'}</Label>
-                <Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="bg-white border-2 border-slate-300 focus:border-amber-500" />
+                <Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="bg-white border-2 border-slate-300" />
               </div>
               <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} className="border-2 border-slate-300">{language === 'fr' ? 'Annuler' : 'إلغاء'}</Button>
