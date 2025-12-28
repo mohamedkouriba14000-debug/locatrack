@@ -1,74 +1,21 @@
-// Sound effects utility
-const sounds = {
-  loginSuccess: '/sounds/login-success.mp3',
-  buttonClick: '/sounds/button-click.mp3',
-  notification: '/sounds/notification.mp3',
-  error: '/sounds/error.mp3',
-  success: '/sounds/success.mp3'
-};
+// Sound effects utility - DISABLED
+// Sons désactivés selon la demande utilisateur
 
-let audioEnabled = true;
+let audioEnabled = false;
 
 export const toggleAudio = () => {
-  audioEnabled = !audioEnabled;
+  audioEnabled = false; // Always disabled
   return audioEnabled;
 };
 
 export const playSound = (soundType) => {
-  if (!audioEnabled) return;
-  
-  try {
-    const audio = new Audio(sounds[soundType]);
-    audio.volume = 0.2; // Volume 20%
-    audio.play().catch(err => console.log('Audio play failed:', err));
-  } catch (err) {
-    console.log('Sound error:', err);
-  }
+  // Sons désactivés
+  return;
 };
 
-// Sons synthétiques avec volume réduit à 20%
 export const playSyntheticSound = (type) => {
-  if (!audioEnabled) return;
-  
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-  
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-  
-  // Configuration selon le type de son avec volume 20%
-  switch(type) {
-    case 'success':
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
-      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-      break;
-    case 'click':
-      oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
-      break;
-    case 'error':
-      oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
-      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-      break;
-    case 'notification':
-      oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
-      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-      break;
-    default:
-      oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
-      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-  }
-  
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.3);
+  // Sons désactivés
+  return;
 };
 
 export default {
