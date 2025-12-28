@@ -4,16 +4,16 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Layout from '../components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { BarChart3, TrendingUp, DollarSign, PieChart } from 'lucide-react';
+import { BarChart3, TrendingUp, DollarSign } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from 'recharts';
 import { toast } from 'sonner';
-import { playSyntheticSound } from '../utils/sounds';
+import { formatApiError } from '../utils/errorHandler';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const ReportsPage = () => {
   const { getAuthHeaders } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [fleetReport, setFleetReport] = useState(null);
   const [financialReport, setFinancialReport] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,10 +28,8 @@ const ReportsPage = () => {
       ]);
       setFleetReport(fleet.data);
       setFinancialReport(financial.data);
-      playSyntheticSound('success');
     } catch (error) {
-      toast.error(t('error'));
-      playSyntheticSound('error');
+      toast.error(formatApiError(error));
     } finally {
       setLoading(false);
     }
@@ -53,15 +51,15 @@ const ReportsPage = () => {
         {/* Financial Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="bg-gradient-to-br from-green-500 to-emerald-500 text-white border-0 shadow-xl">
-            <CardHeader><CardTitle className="flex items-center gap-2"><DollarSign size={24} /> Revenus Totaux</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><DollarSign size={24} /> {language === 'fr' ? 'Revenus Totaux' : 'إجمالي الإيرادات'}</CardTitle></CardHeader>
             <CardContent><p className="text-4xl font-black">{financialReport?.total_revenue?.toLocaleString() || 0} DZD</p></CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-red-500 to-orange-500 text-white border-0 shadow-xl">
-            <CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp size={24} /> Coûts Maintenance</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp size={24} /> {language === 'fr' ? 'Coûts Maintenance' : 'تكاليف الصيانة'}</CardTitle></CardHeader>
             <CardContent><p className="text-4xl font-black">{financialReport?.total_maintenance_cost?.toLocaleString() || 0} DZD</p></CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-blue-500 to-violet-500 text-white border-0 shadow-xl">
-            <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 size={24} /> Bénéfice Net</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><BarChart3 size={24} /> {language === 'fr' ? 'Bénéfice Net' : 'صافي الربح'}</CardTitle></CardHeader>
             <CardContent><p className="text-4xl font-black">{financialReport?.net_profit?.toLocaleString() || 0} DZD</p></CardContent>
           </Card>
         </div>
@@ -69,7 +67,7 @@ const ReportsPage = () => {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="bg-white border-2 border-slate-200 shadow-lg">
-            <CardHeader><CardTitle className="text-slate-800">📈 Revenus Mensuels</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-slate-800">📈 {language === 'fr' ? 'Revenus Mensuels' : 'الإيرادات الشهرية'}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={monthlyData}>
@@ -78,14 +76,14 @@ const ReportsPage = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="revenue" fill="#06b6d4" />
+                  <Bar dataKey="revenue" fill="#06b6d4" name={language === 'fr' ? 'Revenus' : 'الإيرادات'} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
           
           <Card className="bg-white border-2 border-slate-200 shadow-lg">
-            <CardHeader><CardTitle className="text-slate-800">🚗 Véhicules par Statut</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-slate-800">🚗 {language === 'fr' ? 'Véhicules par Statut' : 'المركبات حسب الحالة'}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <RePieChart>
@@ -99,7 +97,7 @@ const ReportsPage = () => {
           </Card>
           
           <Card className="bg-white border-2 border-slate-200 shadow-lg">
-            <CardHeader><CardTitle className="text-slate-800">🖊️ Véhicules par Type</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-slate-800">🖊️ {language === 'fr' ? 'Véhicules par Type' : 'المركبات حسب النوع'}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <RePieChart>
@@ -113,11 +111,11 @@ const ReportsPage = () => {
           </Card>
           
           <Card className="bg-white border-2 border-slate-200 shadow-lg">
-            <CardHeader><CardTitle className="text-slate-800">📄 Statistiques Flotte</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-slate-800">📄 {language === 'fr' ? 'Statistiques Flotte' : 'إحصائيات الأسطول'}</CardTitle></CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg border-2 border-cyan-200">
-                  <p className="text-sm text-slate-600">Total Véhicules</p>
+                  <p className="text-sm text-slate-600">{language === 'fr' ? 'Total Véhicules' : 'إجمالي المركبات'}</p>
                   <p className="text-3xl font-bold text-cyan-700">{fleetReport?.total_vehicles || 0}</p>
                 </div>
                 <div className="space-y-2">
