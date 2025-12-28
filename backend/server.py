@@ -700,10 +700,11 @@ async def create_reservation(
 async def update_reservation_status(
     reservation_id: str,
     status: str,
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
+    tenant_id = get_tenant_id(current_user)
     result = await db.reservations.update_one(
-        {"id": reservation_id},
+        {"id": reservation_id, "tenant_id": tenant_id},
         {"$set": {"status": status}}
     )
     if result.matched_count == 0:
@@ -714,9 +715,10 @@ async def update_reservation_status(
 
 @api_router.get("/payments", response_model=List[Payment])
 async def get_payments(
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
-    payments = await db.payments.find({}, {"_id": 0}).to_list(1000)
+    tenant_id = get_tenant_id(current_user)
+    payments = await db.payments.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
     for p in payments:
         for date_field in ['created_at', 'payment_date']:
             if p.get(date_field) and isinstance(p[date_field], str):
@@ -726,9 +728,12 @@ async def get_payments(
 @api_router.post("/payments", response_model=Payment)
 async def create_payment(
     payment_create: PaymentCreate,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
-    payment_obj = Payment(**payment_create.model_dump())
+    tenant_id = get_tenant_id(current_user)
+    payment_data = payment_create.model_dump()
+    payment_data['tenant_id'] = tenant_id
+    payment_obj = Payment(**payment_data)
     payment_obj.status = "completed"
     payment_obj.payment_date = datetime.now(timezone.utc)
     
@@ -744,9 +749,10 @@ async def create_payment(
 
 @api_router.get("/maintenance", response_model=List[Maintenance])
 async def get_maintenance(
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
-    maintenances = await db.maintenance.find({}, {"_id": 0}).to_list(1000)
+    tenant_id = get_tenant_id(current_user)
+    maintenances = await db.maintenance.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
     for m in maintenances:
         for date_field in ['created_at', 'scheduled_date', 'completed_date']:
             if m.get(date_field) and isinstance(m[date_field], str):
@@ -756,9 +762,12 @@ async def get_maintenance(
 @api_router.post("/maintenance", response_model=Maintenance)
 async def create_maintenance(
     maintenance_create: MaintenanceCreate,
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
-    maintenance_obj = Maintenance(**maintenance_create.model_dump())
+    tenant_id = get_tenant_id(current_user)
+    maintenance_data = maintenance_create.model_dump()
+    maintenance_data['tenant_id'] = tenant_id
+    maintenance_obj = Maintenance(**maintenance_data)
     doc = maintenance_obj.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     doc['scheduled_date'] = doc['scheduled_date'].isoformat()
@@ -769,7 +778,7 @@ async def create_maintenance(
     
     # Update vehicle status
     await db.vehicles.update_one(
-        {"id": maintenance_create.vehicle_id},
+        {"id": maintenance_create.vehicle_id, "tenant_id": tenant_id},
         {"$set": {"status": "maintenance"}}
     )
     
@@ -777,7 +786,7 @@ async def create_maintenance(
 
 @api_router.get("/maintenance/alerts")
 async def get_maintenance_alerts(
-    current_user: User = Depends(require_role([UserRole.SUPERADMIN, UserRole.ADMIN, UserRole.EMPLOYEE]))
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
 ):
     # Get upcoming maintenance within next 7 days
     today = datetime.now(timezone.utc)
