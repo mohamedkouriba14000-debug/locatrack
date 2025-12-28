@@ -21,6 +21,7 @@ class VehicleTrackAPITester:
         
         # Test credentials
         self.credentials = {
+            'superadmin': {'email': 'superadmin@locatrack.dz', 'password': 'superadmin123'},
             'admin': {'email': 'admin@vehicletrack.dz', 'password': 'admin123'},
             'employee': {'email': 'employee@vehicletrack.dz', 'password': 'employee123'},
             'client': {'email': 'client@vehicletrack.dz', 'password': 'client123'}
