@@ -178,7 +178,7 @@ class VehicleTrackAPITester:
         
         # Test GET vehicles
         success, response = self.make_request(
-            'GET', 'vehicles', token=self.tokens.get('admin')
+            'GET', 'vehicles', token=self.tokens.get('locateur')
         )
         
         if success and isinstance(response, list):
