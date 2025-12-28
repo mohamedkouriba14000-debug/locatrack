@@ -767,8 +767,12 @@ class VehicleTrackAPITester:
             return False
         
         # Run all test suites
+        self.test_locateur_registration()
         self.test_dashboard_stats()
-        self.test_superadmin_functionality()
+        self.test_superadmin_locateurs_management()
+        self.test_employee_management()
+        self.test_tenant_isolation()
+        self.test_role_based_menu_access()
         self.test_messaging_functionality()
         self.test_vehicles_crud()
         self.test_role_based_access()
