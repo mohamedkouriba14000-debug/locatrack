@@ -1169,6 +1169,150 @@ class VehicleTrackAPITester:
             self.log_test("Cleanup test employee", delete_success,
                          "Test employee deleted")
 
+    def test_dashboard_quick_validation(self):
+        """Test dashboard quick validation after improvements (P0 Priority)"""
+        print("\n📊 Testing Dashboard Quick Validation (P0)...")
+        
+        # Test 1: Login as locateur and test dashboard stats
+        success, response = self.make_request(
+            'GET', 'reports/dashboard', token=self.tokens.get('locateur')
+        )
+        
+        if success:
+            required_fields = [
+                'total_vehicles', 'available_vehicles', 'rented_vehicles',
+                'total_employees', 'active_contracts', 'total_revenue_30d',
+                'pending_infractions', 'upcoming_maintenance'
+            ]
+            
+            missing_fields = [field for field in required_fields if field not in response]
+            
+            if not missing_fields:
+                self.log_test("Dashboard stats for locateur", True, 
+                            f"All required fields present: {list(response.keys())}")
+                
+                # Log actual values for verification
+                stats_summary = {k: response[k] for k in required_fields}
+                self.log_test("Dashboard stats values", True, 
+                            f"Stats: {stats_summary}")
+            else:
+                self.log_test("Dashboard stats for locateur", False, 
+                            f"Missing fields: {missing_fields}")
+        else:
+            self.log_test("Dashboard stats for locateur", False, 
+                        f"Request failed: {response}")
+
+    def test_superadmin_enhanced_stats(self):
+        """Test SuperAdmin enhanced stats endpoint (P0 Priority)"""
+        print("\n👑 Testing SuperAdmin Enhanced Stats (P0)...")
+        
+        # Test SuperAdmin stats endpoint
+        success, response = self.make_request(
+            'GET', 'admin/stats', token=self.tokens.get('superadmin')
+        )
+        
+        if success:
+            # Check for all new stats fields mentioned in review request
+            required_new_fields = [
+                'total_locateurs', 'total_employees', 'total_clients_platform',
+                'total_vehicles_platform', 'available_vehicles_platform', 'rented_vehicles_platform',
+                'total_contracts_platform', 'active_contracts_platform',
+                'total_reservations_platform', 'total_revenue_platform',
+                'pending_infractions_platform'
+            ]
+            
+            missing_fields = [field for field in required_new_fields if field not in response]
+            
+            if not missing_fields:
+                self.log_test("SuperAdmin enhanced stats structure", True, 
+                            f"All new stats fields present")
+                
+                # Log actual values for verification
+                stats_summary = {k: response[k] for k in required_new_fields}
+                self.log_test("SuperAdmin enhanced stats values", True, 
+                            f"Enhanced stats: {stats_summary}")
+                
+                # Verify data types are numeric
+                numeric_fields = [f for f in required_new_fields if f != 'total_revenue_platform']
+                type_errors = []
+                for field in numeric_fields:
+                    if not isinstance(response.get(field), (int, float)):
+                        type_errors.append(field)
+                
+                if not type_errors:
+                    self.log_test("SuperAdmin stats data types", True, 
+                                "All numeric fields have correct types")
+                else:
+                    self.log_test("SuperAdmin stats data types", False, 
+                                f"Invalid types for: {type_errors}")
+            else:
+                self.log_test("SuperAdmin enhanced stats structure", False, 
+                            f"Missing new fields: {missing_fields}")
+        else:
+            self.log_test("SuperAdmin enhanced stats endpoint", False, 
+                        f"Request failed: {response}")
+
+    def test_quick_sanity_checks(self):
+        """Test quick sanity checks for basic endpoints (P0 Priority)"""
+        print("\n✅ Testing Quick Sanity Checks (P0)...")
+        
+        # Test 1: GET /api/clients for locateur
+        clients_success, clients_response = self.make_request(
+            'GET', 'clients', token=self.tokens.get('locateur')
+        )
+        
+        if clients_success and isinstance(clients_response, list):
+            self.log_test("GET /api/clients for locateur", True, 
+                        f"Retrieved {len(clients_response)} clients successfully")
+        else:
+            self.log_test("GET /api/clients for locateur", False, 
+                        f"Failed: {clients_response}")
+        
+        # Test 2: GET /api/vehicles for locateur
+        vehicles_success, vehicles_response = self.make_request(
+            'GET', 'vehicles', token=self.tokens.get('locateur')
+        )
+        
+        if vehicles_success and isinstance(vehicles_response, list):
+            self.log_test("GET /api/vehicles for locateur", True, 
+                        f"Retrieved {len(vehicles_response)} vehicles successfully")
+        else:
+            self.log_test("GET /api/vehicles for locateur", False, 
+                        f"Failed: {vehicles_response}")
+
+    def run_quick_validation_tests(self):
+        """Run quick validation tests for LocaTrack SaaS after dashboard improvements"""
+        print("🚀 Starting LocaTrack SaaS Quick Validation Tests")
+        print(f"🎯 Target URL: {self.base_url}")
+        print("🔥 Focus: Dashboard Improvements Validation")
+        print("=" * 60)
+        
+        # Authentication is required for all other tests
+        if not self.test_authentication():
+            print("❌ Authentication failed - stopping tests")
+            return False
+        
+        # Run Quick Validation Tests (P0 Priority)
+        print("\n🔥 QUICK VALIDATION TESTS (P0)")
+        self.test_dashboard_quick_validation()
+        self.test_superadmin_enhanced_stats()
+        self.test_quick_sanity_checks()
+        
+        # Print summary
+        print("\n" + "=" * 60)
+        print("📊 QUICK VALIDATION SUMMARY")
+        print(f"Total Tests: {self.tests_run}")
+        print(f"Passed: {self.tests_passed}")
+        print(f"Failed: {self.tests_run - self.tests_passed}")
+        print(f"Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        
+        if self.failed_tests:
+            print("\n❌ FAILED TESTS:")
+            for failure in self.failed_tests:
+                print(f"  - {failure}")
+        
+        return self.tests_passed == self.tests_run
+
     def run_priority_tests(self):
         """Run priority tests for LocaTrack SaaS focusing on bug fixes and new features"""
         print("🚀 Starting LocaTrack SaaS Priority Backend Tests")
