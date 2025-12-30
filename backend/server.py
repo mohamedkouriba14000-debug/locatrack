@@ -18,6 +18,11 @@ import shutil
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Create uploads directory for file storage
+UPLOADS_DIR = ROOT_DIR / 'uploads'
+UPLOADS_DIR.mkdir(exist_ok=True)
+(UPLOADS_DIR / 'licenses').mkdir(exist_ok=True)
+
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
