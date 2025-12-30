@@ -1138,14 +1138,33 @@ class VehicleTrackAPITester:
         """Clean up test data"""
         print("\n🧹 Cleaning up test data...")
         
-        # Delete test vehicle if created
-        if 'test_vehicle_id' in self.test_data:
+        # Delete test client (and test DELETE functionality)
+        if 'test_client_id' in self.test_data:
             delete_success, delete_response = self.make_request(
-                'DELETE', f'vehicles/{self.test_data["test_vehicle_id"]}',
+                'DELETE', f'clients/{self.test_data["test_client_id"]}',
                 token=self.tokens.get('locateur')
             )
-            self.log_test("Cleanup test vehicle", delete_success,
-                         "Test vehicle deleted")
+            self.log_test("Delete client (cleanup)", delete_success,
+                         "Test client deleted successfully")
+        
+        # Delete test vehicles created in bug fix tests
+        for vehicle_key in ['vehicle_with_insurance_id', 'vehicle_without_insurance_id', 'test_vehicle_id']:
+            if vehicle_key in self.test_data:
+                delete_success, delete_response = self.make_request(
+                    'DELETE', f'vehicles/{self.test_data[vehicle_key]}',
+                    token=self.tokens.get('locateur')
+                )
+                self.log_test(f"Cleanup {vehicle_key}", delete_success,
+                             f"Vehicle {vehicle_key} deleted")
+        
+        # Delete test employee if created
+        if 'test_employee_id' in self.test_data:
+            delete_success, delete_response = self.make_request(
+                'DELETE', f'employees/{self.test_data["test_employee_id"]}',
+                token=self.tokens.get('locateur')
+            )
+            self.log_test("Cleanup test employee", delete_success,
+                         "Test employee deleted")
 
     def run_all_tests(self):
         """Run complete test suite"""
