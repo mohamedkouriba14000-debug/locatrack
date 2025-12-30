@@ -80,11 +80,46 @@ const DashboardPage = () => {
               <CardHeader><CardTitle className="font-heading text-xl uppercase text-cyan-600">⚡ {language === 'fr' ? 'Actions rapides' : 'إجراءات سريعة'}</CardTitle></CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {['Ajouter un véhicule', 'Nouvelle réservation', 'Créer un contrat'].map((action, i) => (
-                    <div key={i} onClick={() => playSyntheticSound('click')} className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg hover:from-cyan-50 hover:to-violet-50 border-2 border-slate-200 hover:border-cyan-300 cursor-pointer transition-all" data-testid={`quick-action-${i}`}>
-                      <p className="font-medium text-slate-700">{action}</p>
+                  <div 
+                    onClick={() => { playSyntheticSound('click'); navigate('/fleet'); }} 
+                    className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg hover:from-cyan-50 hover:to-violet-50 border-2 border-slate-200 hover:border-cyan-300 cursor-pointer transition-all flex items-center gap-3" 
+                    data-testid="quick-action-0"
+                  >
+                    <div className="p-2 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg">
+                      <Plus className="text-white" size={18} />
                     </div>
-                  ))}
+                    <p className="font-medium text-slate-700">{language === 'fr' ? 'Ajouter un véhicule' : 'إضافة مركبة'}</p>
+                  </div>
+                  <div 
+                    onClick={() => { playSyntheticSound('click'); navigate('/clients'); }} 
+                    className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg hover:from-teal-50 hover:to-emerald-50 border-2 border-slate-200 hover:border-teal-300 cursor-pointer transition-all flex items-center gap-3" 
+                    data-testid="quick-action-1"
+                  >
+                    <div className="p-2 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-lg">
+                      <UserPlus className="text-white" size={18} />
+                    </div>
+                    <p className="font-medium text-slate-700">{language === 'fr' ? 'Ajouter un client' : 'إضافة عميل'}</p>
+                  </div>
+                  <div 
+                    onClick={() => { playSyntheticSound('click'); navigate('/reservations'); }} 
+                    className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg hover:from-blue-50 hover:to-violet-50 border-2 border-slate-200 hover:border-blue-300 cursor-pointer transition-all flex items-center gap-3" 
+                    data-testid="quick-action-2"
+                  >
+                    <div className="p-2 bg-gradient-to-br from-blue-500 to-violet-500 rounded-lg">
+                      <Calendar className="text-white" size={18} />
+                    </div>
+                    <p className="font-medium text-slate-700">{language === 'fr' ? 'Nouvelle réservation' : 'حجز جديد'}</p>
+                  </div>
+                  <div 
+                    onClick={() => { playSyntheticSound('click'); navigate('/contracts'); }} 
+                    className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg hover:from-purple-50 hover:to-pink-50 border-2 border-slate-200 hover:border-purple-300 cursor-pointer transition-all flex items-center gap-3" 
+                    data-testid="quick-action-3"
+                  >
+                    <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
+                      <FileText className="text-white" size={18} />
+                    </div>
+                    <p className="font-medium text-slate-700">{language === 'fr' ? 'Créer un contrat' : 'إنشاء عقد'}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
