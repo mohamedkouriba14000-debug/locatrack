@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Car,
   Users,
+  UserCheck,
   Calendar,
   FileText,
   CreditCard,
