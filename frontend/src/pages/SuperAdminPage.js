@@ -111,8 +111,8 @@ const SuperAdminPage = () => {
           </h1>
         </div>
         
-        {/* Platform Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {/* Platform Stats - Row 1 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -135,25 +135,76 @@ const SuperAdminPage = () => {
               </div>
             </CardContent>
           </Card>
+          <Card className="bg-gradient-to-br from-teal-50 to-teal-100 border-2 border-teal-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-teal-600 font-medium">{language === 'fr' ? 'Clients' : 'العملاء'}</p>
+                  <p className="text-3xl font-bold text-teal-800">{stats.total_clients_platform || 0}</p>
+                </div>
+                <UserCheck className="text-teal-500" size={32} />
+              </div>
+            </CardContent>
+          </Card>
           <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-emerald-600 font-medium">{language === 'fr' ? 'Véhicules (total)' : 'المركبات (الإجمالي)'}</p>
+                  <p className="text-sm text-emerald-600 font-medium">{language === 'fr' ? 'Véhicules' : 'المركبات'}</p>
                   <p className="text-3xl font-bold text-emerald-800">{stats.total_vehicles_platform || 0}</p>
+                  <p className="text-xs text-emerald-600">{stats.available_vehicles_platform || 0} {language === 'fr' ? 'dispo' : 'متاح'} / {stats.rented_vehicles_platform || 0} {language === 'fr' ? 'loués' : 'مؤجر'}</p>
                 </div>
                 <Car className="text-emerald-500" size={32} />
               </div>
             </CardContent>
           </Card>
+        </div>
+        
+        {/* Platform Stats - Row 2 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="bg-gradient-to-br from-violet-50 to-violet-100 border-2 border-violet-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-violet-600 font-medium">{language === 'fr' ? 'Contrats (total)' : 'العقود (الإجمالي)'}</p>
+                  <p className="text-sm text-violet-600 font-medium">{language === 'fr' ? 'Contrats' : 'العقود'}</p>
                   <p className="text-3xl font-bold text-violet-800">{stats.total_contracts_platform || 0}</p>
+                  <p className="text-xs text-violet-600">{stats.active_contracts_platform || 0} {language === 'fr' ? 'actifs' : 'نشط'}</p>
                 </div>
                 <FileText className="text-violet-500" size={32} />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-2 border-cyan-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-cyan-600 font-medium">{language === 'fr' ? 'Réservations' : 'الحجوزات'}</p>
+                  <p className="text-3xl font-bold text-cyan-800">{stats.total_reservations_platform || 0}</p>
+                </div>
+                <Calendar className="text-cyan-500" size={32} />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{language === 'fr' ? 'Revenus Total' : 'إجمالي الإيرادات'}</p>
+                  <p className="text-2xl font-bold text-green-800">{(stats.total_revenue_platform || 0).toLocaleString()} DZD</p>
+                </div>
+                <DollarSign className="text-green-500" size={32} />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-red-600 font-medium">{language === 'fr' ? 'Infractions' : 'المخالفات'}</p>
+                  <p className="text-3xl font-bold text-red-800">{stats.pending_infractions_platform || 0}</p>
+                  <p className="text-xs text-red-600">{language === 'fr' ? 'en attente' : 'في الانتظار'}</p>
+                </div>
+                <AlertTriangle className="text-red-500" size={32} />
               </div>
             </CardContent>
           </Card>
