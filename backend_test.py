@@ -1166,6 +1166,50 @@ class VehicleTrackAPITester:
             self.log_test("Cleanup test employee", delete_success,
                          "Test employee deleted")
 
+    def run_priority_tests(self):
+        """Run priority tests for LocaTrack SaaS focusing on bug fixes and new features"""
+        print("🚀 Starting LocaTrack SaaS Priority Backend Tests")
+        print(f"🎯 Target URL: {self.base_url}")
+        print("🔥 Focus: Vehicle Creation Bug Fix & Clients Module")
+        print("=" * 60)
+        
+        # Authentication is required for all other tests
+        if not self.test_authentication():
+            print("❌ Authentication failed - stopping tests")
+            return False
+        
+        # Run P0 Priority Tests
+        print("\n🔥 P0 PRIORITY TESTS")
+        self.test_vehicle_creation_bug_fix()
+        self.test_clients_crud_operations()
+        self.test_license_upload_functionality()
+        self.test_tenant_isolation_clients()
+        
+        # Run Medium Priority Tests
+        print("\n🔶 MEDIUM PRIORITY TESTS")
+        self.test_contracts_reservations_integration()
+        
+        # Run basic error handling
+        self.test_error_handling()
+        
+        # Cleanup
+        self.cleanup_test_data()
+        
+        # Print summary
+        print("\n" + "=" * 60)
+        print("📊 PRIORITY TEST SUMMARY")
+        print(f"Total Tests: {self.tests_run}")
+        print(f"Passed: {self.tests_passed}")
+        print(f"Failed: {self.tests_run - self.tests_passed}")
+        print(f"Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        
+        if self.failed_tests:
+            print("\n❌ FAILED TESTS:")
+            for failure in self.failed_tests:
+                print(f"  - {failure}")
+        
+        return self.tests_passed == self.tests_run
+
     def run_all_tests(self):
         """Run complete test suite"""
         print("🚀 Starting VehicleTrack Pro Backend API Tests")
