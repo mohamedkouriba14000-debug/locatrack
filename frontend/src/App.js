@@ -8,6 +8,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import FleetPage from './pages/FleetPage';
 import EmployeesPage from './pages/EmployeesPage';
+import ClientsPage from './pages/ClientsPage';
 import ReservationsPage from './pages/ReservationsPage';
 import ContractsPage from './pages/ContractsPage';
 import PaymentsPage from './pages/PaymentsPage';
