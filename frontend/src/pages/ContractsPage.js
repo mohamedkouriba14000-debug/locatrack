@@ -21,7 +21,7 @@ const ContractsPage = () => {
   const { t, language } = useLanguage();
   const [contracts, setContracts] = useState([]);
   const [vehicles, setVehicles] = useState([]);
-  const [reservations, setReservations] = useState([]);
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [showSignature, setShowSignature] = useState(false);
@@ -42,14 +42,14 @@ const ContractsPage = () => {
   
   const fetchData = async () => {
     try {
-      const [contractsRes, vehiclesRes, reservationsRes] = await Promise.all([
+      const [contractsRes, vehiclesRes, clientsRes] = await Promise.all([
         axios.get(`${API}/contracts`, { headers: getAuthHeaders() }),
         axios.get(`${API}/vehicles`, { headers: getAuthHeaders() }),
-        axios.get(`${API}/reservations`, { headers: getAuthHeaders() }).catch(() => ({ data: [] }))
+        axios.get(`${API}/clients`, { headers: getAuthHeaders() }).catch(() => ({ data: [] }))
       ]);
       setContracts(contractsRes.data);
       setVehicles(vehiclesRes.data);
-      setReservations(reservationsRes.data.filter(r => r.status === 'confirmed'));
+      setClients(clientsRes.data);
     } catch (error) {
       toast.error(formatApiError(error));
     } finally {
