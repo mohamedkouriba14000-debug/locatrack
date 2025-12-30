@@ -64,6 +64,7 @@ const Layout = ({ children }) => {
         { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard' },
         { icon: Car, label: t('fleet'), path: '/fleet' },
         { icon: Users, label: language === 'fr' ? 'Employés' : 'الموظفون', path: '/employees' },
+        { icon: UserCheck, label: language === 'fr' ? 'Clients' : 'العملاء', path: '/clients' },
         { icon: Calendar, label: t('reservations'), path: '/reservations' },
         { icon: FileText, label: t('contracts'), path: '/contracts' },
         { icon: CreditCard, label: t('payments'), path: '/payments' },
@@ -77,6 +78,7 @@ const Layout = ({ children }) => {
     return [
       { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard' },
       { icon: Car, label: t('fleet'), path: '/fleet' },
+      { icon: UserCheck, label: language === 'fr' ? 'Clients' : 'العملاء', path: '/clients' },
       { icon: Calendar, label: t('reservations'), path: '/reservations' },
       { icon: FileText, label: t('contracts'), path: '/contracts' },
       { icon: CreditCard, label: t('payments'), path: '/payments' },
