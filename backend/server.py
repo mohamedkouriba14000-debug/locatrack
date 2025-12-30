@@ -623,6 +623,50 @@ async def delete_client(
         raise HTTPException(status_code=404, detail="Client not found")
     return {"message": "Client deleted"}
 
+@api_router.post("/clients/upload-license")
+async def upload_license(
+    file: UploadFile = File(...),
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
+):
+    """Upload a driver's license image"""
+    # Validate file type
+    allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf']
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, PDF")
+    
+    # Generate unique filename
+    file_ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+    unique_filename = f"{uuid.uuid4()}.{file_ext}"
+    file_path = UPLOADS_DIR / 'licenses' / unique_filename
+    
+    # Save file
+    try:
+        with open(file_path, 'wb') as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+    
+    # Return the URL path to access the file
+    file_url = f"/api/uploads/licenses/{unique_filename}"
+    return {"url": file_url, "filename": unique_filename}
+
+@api_router.get("/clients/{client_id}")
+async def get_client(
+    client_id: str,
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
+):
+    """Get a single client by ID"""
+    tenant_id = get_tenant_id(current_user)
+    client = await db.clients.find_one({"id": client_id, "tenant_id": tenant_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    for date_field in ['created_at', 'license_issue_date']:
+        if client.get(date_field) and isinstance(client[date_field], str):
+            client[date_field] = datetime.fromisoformat(client[date_field])
+    
+    return client
+
 # ==================== CONTRACT ROUTES ====================
 
 @api_router.get("/contracts", response_model=List[Contract])
