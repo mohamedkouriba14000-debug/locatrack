@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 class VehicleTrackAPITester:
-    def __init__(self, base_url="https://algiers-rentals.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://carsaas-2.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tokens = {}
         self.test_data = {}
