@@ -1160,17 +1160,43 @@ async def get_admin_stats(
     total_locateurs = await db.users.count_documents({"role": UserRole.LOCATEUR})
     total_employees = await db.users.count_documents({"role": UserRole.EMPLOYEE})
     superadmins = await db.users.count_documents({"role": UserRole.SUPERADMIN})
+    total_clients = await db.clients.count_documents({})
     
     # Platform-wide stats
     total_vehicles = await db.vehicles.count_documents({})
+    available_vehicles = await db.vehicles.count_documents({"status": "available"})
+    rented_vehicles = await db.vehicles.count_documents({"status": "rented"})
     total_contracts = await db.contracts.count_documents({})
+    active_contracts = await db.contracts.count_documents({"status": "active"})
+    total_reservations = await db.reservations.count_documents({})
+    total_payments = await db.payments.count_documents({})
+    
+    # Revenue calculation
+    payments = await db.payments.find({"status": "completed"}, {"_id": 0, "amount": 1}).to_list(10000)
+    total_revenue = sum(p.get('amount', 0) for p in payments)
+    
+    # Maintenance costs
+    maintenances = await db.maintenance.find({"status": "completed"}, {"_id": 0, "cost": 1}).to_list(10000)
+    total_maintenance_cost = sum(m.get('cost', 0) for m in maintenances)
+    
+    # Pending infractions
+    pending_infractions = await db.infractions.count_documents({"status": "pending"})
     
     return {
         "total_locateurs": total_locateurs,
         "total_employees": total_employees,
         "superadmins": superadmins,
+        "total_clients_platform": total_clients,
         "total_vehicles_platform": total_vehicles,
-        "total_contracts_platform": total_contracts
+        "available_vehicles_platform": available_vehicles,
+        "rented_vehicles_platform": rented_vehicles,
+        "total_contracts_platform": total_contracts,
+        "active_contracts_platform": active_contracts,
+        "total_reservations_platform": total_reservations,
+        "total_payments_platform": total_payments,
+        "total_revenue_platform": total_revenue,
+        "total_maintenance_cost_platform": total_maintenance_cost,
+        "pending_infractions_platform": pending_infractions
     }
 
 # ==================== MESSAGING ROUTES ====================
