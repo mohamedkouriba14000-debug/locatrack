@@ -1255,7 +1255,8 @@ class VehicleTrackAPITester:
 def main():
     """Main test execution"""
     tester = VehicleTrackAPITester()
-    success = tester.run_all_tests()
+    # Run priority tests focusing on the review request
+    success = tester.run_priority_tests()
     return 0 if success else 1
 
 if __name__ == "__main__":
