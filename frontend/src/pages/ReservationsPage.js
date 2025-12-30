@@ -115,7 +115,7 @@ const ReservationsPage = () => {
                     <SelectTrigger className="bg-white border-2 border-slate-300"><SelectValue placeholder="Sélectionner client" /></SelectTrigger>
                     <SelectContent>
                       {clients.map(client => (
-                        <SelectItem key={client.id} value={client.id}>Client #{client.id.substring(0, 8)} - {client.national_id}</SelectItem>
+                        <SelectItem key={client.id} value={client.id}>{client.full_name} - {client.phone}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
