@@ -158,8 +158,15 @@ const ContractsPage = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-700 font-semibold">{language === 'fr' ? 'ID Client' : 'معرف العميل'}</Label>
-                  <Input value={formData.client_id} onChange={(e) => setFormData({...formData, client_id: e.target.value})} required className="bg-white border-2 border-slate-300 focus:border-purple-500" placeholder="client-id-123" />
+                  <Label className="text-slate-700 font-semibold">{language === 'fr' ? 'Client' : 'العميل'}</Label>
+                  <Select value={formData.client_id} onValueChange={(value) => setFormData({...formData, client_id: value})}>
+                    <SelectTrigger className="bg-white border-2 border-slate-300"><SelectValue placeholder={language === 'fr' ? 'Sélectionner client' : 'اختر العميل'} /></SelectTrigger>
+                    <SelectContent>
+                      {clients.map(client => (
+                        <SelectItem key={client.id} value={client.id}>{client.full_name} - {client.phone}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
