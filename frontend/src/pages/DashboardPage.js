@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Layout from '../components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Car, Users, FileText, DollarSign, AlertTriangle, Wrench, TrendingUp, CheckCircle } from 'lucide-react';
+import { Car, Users, FileText, DollarSign, AlertTriangle, Wrench, TrendingUp, CheckCircle, Calendar, UserPlus, Plus } from 'lucide-react';
 import { playSyntheticSound } from '../utils/sounds';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
