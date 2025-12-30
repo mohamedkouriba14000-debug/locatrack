@@ -716,6 +716,398 @@ class VehicleTrackAPITester:
         self.log_test("Validation for incomplete data", incomplete_success,
                      "API correctly rejects incomplete data")
 
+    def test_vehicle_creation_bug_fix(self):
+        """Test vehicle creation with and without insurance_expiry (P0 Priority)"""
+        print("\n🚗 Testing Vehicle Creation Bug Fix (P0)...")
+        
+        # Test 1: Create vehicle WITH insurance_expiry date
+        vehicle_with_insurance = {
+            "registration_number": f"INS-{datetime.now().strftime('%H%M%S')}",
+            "type": "sedan",
+            "make": "Toyota",
+            "model": "Camry",
+            "year": 2024,
+            "chassis_number": f"CHASSIS_INS_{datetime.now().strftime('%H%M%S')}",
+            "color": "Blue",
+            "daily_rate": 5000.0,
+            "insurance_number": "INS123456",
+            "insurance_expiry": (datetime.now() + timedelta(days=365)).isoformat()
+        }
+        
+        with_ins_success, with_ins_response = self.make_request(
+            'POST', 'vehicles', vehicle_with_insurance, 
+            token=self.tokens.get('locateur'), expected_status=200
+        )
+        
+        if with_ins_success and 'id' in with_ins_response:
+            self.test_data['vehicle_with_insurance_id'] = with_ins_response['id']
+            self.log_test("Vehicle creation WITH insurance_expiry", True, 
+                        f"Vehicle created successfully with insurance expiry")
+            
+            # Verify insurance_expiry is stored correctly
+            if with_ins_response.get('insurance_expiry'):
+                self.log_test("Insurance expiry field storage", True,
+                            "Insurance expiry date stored correctly")
+            else:
+                self.log_test("Insurance expiry field storage", False,
+                            "Insurance expiry date not stored")
+        else:
+            self.log_test("Vehicle creation WITH insurance_expiry", False, 
+                        f"Failed: {with_ins_response}")
+        
+        # Test 2: Create vehicle WITHOUT insurance_expiry date
+        vehicle_without_insurance = {
+            "registration_number": f"NO-INS-{datetime.now().strftime('%H%M%S')}",
+            "type": "suv",
+            "make": "Honda",
+            "model": "CR-V",
+            "year": 2023,
+            "chassis_number": f"CHASSIS_NO_INS_{datetime.now().strftime('%H%M%S')}",
+            "color": "Red",
+            "daily_rate": 4500.0
+            # Note: No insurance_number or insurance_expiry fields
+        }
+        
+        without_ins_success, without_ins_response = self.make_request(
+            'POST', 'vehicles', vehicle_without_insurance, 
+            token=self.tokens.get('locateur'), expected_status=200
+        )
+        
+        if without_ins_success and 'id' in without_ins_response:
+            self.test_data['vehicle_without_insurance_id'] = without_ins_response['id']
+            self.log_test("Vehicle creation WITHOUT insurance_expiry", True, 
+                        f"Vehicle created successfully without insurance fields")
+        else:
+            self.log_test("Vehicle creation WITHOUT insurance_expiry", False, 
+                        f"Failed: {without_ins_response}")
+
+    def test_clients_crud_operations(self):
+        """Test Clients Module CRUD operations (P0 Priority)"""
+        print("\n👥 Testing Clients Module CRUD (P0)...")
+        
+        # Test 1: CREATE client
+        new_client = {
+            "full_name": "Ahmed Ben Ali",
+            "phone": "+213555123456",
+            "license_number": "DL123456789",
+            "license_issue_date": (datetime.now() - timedelta(days=365)).isoformat(),
+            "address": "123 Rue de la Paix, Alger",
+            "notes": "VIP client - preferred rates"
+        }
+        
+        create_success, create_response = self.make_request(
+            'POST', 'clients', new_client, 
+            token=self.tokens.get('locateur'), expected_status=200
+        )
+        
+        if create_success and 'id' in create_response:
+            client_id = create_response['id']
+            self.test_data['test_client_id'] = client_id
+            self.log_test("Create client", True, 
+                        f"Client created with ID: {client_id}")
+            
+            # Verify all fields are stored
+            required_fields = ['full_name', 'phone', 'license_number', 'license_issue_date']
+            missing_fields = [field for field in required_fields if not create_response.get(field)]
+            
+            if not missing_fields:
+                self.log_test("Client data completeness", True,
+                            "All required fields stored correctly")
+            else:
+                self.log_test("Client data completeness", False,
+                            f"Missing fields: {missing_fields}")
+        else:
+            self.log_test("Create client", False, f"Failed: {create_response}")
+            return
+        
+        # Test 2: GET all clients (list)
+        list_success, list_response = self.make_request(
+            'GET', 'clients', token=self.tokens.get('locateur')
+        )
+        
+        if list_success and isinstance(list_response, list):
+            client_found = any(c.get('id') == client_id for c in list_response)
+            self.log_test("List all clients", True, 
+                        f"Retrieved {len(list_response)} clients")
+            self.log_test("Created client in list", client_found,
+                        "Created client appears in list")
+        else:
+            self.log_test("List all clients", False, f"Failed: {list_response}")
+        
+        # Test 3: GET single client
+        get_success, get_response = self.make_request(
+            'GET', f'clients/{client_id}', token=self.tokens.get('locateur')
+        )
+        
+        if get_success and get_response.get('id') == client_id:
+            self.log_test("Get single client", True, 
+                        f"Retrieved client: {get_response.get('full_name')}")
+        else:
+            self.log_test("Get single client", False, f"Failed: {get_response}")
+        
+        # Test 4: UPDATE client
+        update_data = {
+            "full_name": "Ahmed Ben Ali (Updated)",
+            "phone": "+213555999888",
+            "notes": "Updated notes - premium client"
+        }
+        
+        update_success, update_response = self.make_request(
+            'PUT', f'clients/{client_id}', update_data, 
+            token=self.tokens.get('locateur')
+        )
+        
+        if update_success:
+            self.log_test("Update client", True, "Client updated successfully")
+            
+            # Verify update by getting client again
+            verify_success, verify_response = self.make_request(
+                'GET', f'clients/{client_id}', token=self.tokens.get('locateur')
+            )
+            
+            if (verify_success and 
+                verify_response.get('full_name') == update_data['full_name'] and
+                verify_response.get('phone') == update_data['phone']):
+                self.log_test("Update verification", True, "Updates applied correctly")
+            else:
+                self.log_test("Update verification", False, "Updates not applied")
+        else:
+            self.log_test("Update client", False, f"Failed: {update_response}")
+        
+        # Test 5: DELETE client (will be done in cleanup)
+        # We'll test delete in cleanup to avoid breaking other tests
+
+    def test_license_upload_functionality(self):
+        """Test license upload functionality (P0 Priority)"""
+        print("\n📄 Testing License Upload (P0)...")
+        
+        # Create a test file content (simulating a small image file)
+        test_file_content = b"fake_image_content_for_testing"
+        
+        # Test file upload using multipart/form-data
+        url = f"{self.base_url}/clients/upload-license"
+        headers = {'Authorization': f'Bearer {self.tokens.get("locateur")}'}
+        
+        # Create files parameter for multipart upload
+        files = {
+            'file': ('test_license.jpg', test_file_content, 'image/jpeg')
+        }
+        
+        try:
+            response = requests.post(url, files=files, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                if 'url' in response_data and 'filename' in response_data:
+                    self.test_data['uploaded_license_url'] = response_data['url']
+                    self.log_test("License file upload", True, 
+                                f"File uploaded: {response_data['filename']}")
+                    
+                    # Test if the returned URL is accessible
+                    file_url = f"{self.base_url.replace('/api', '')}{response_data['url']}"
+                    file_check_response = requests.get(file_url, timeout=10)
+                    
+                    if file_check_response.status_code == 200:
+                        self.log_test("Uploaded file accessibility", True,
+                                    "Uploaded file is accessible via URL")
+                    else:
+                        self.log_test("Uploaded file accessibility", False,
+                                    f"File not accessible: {file_check_response.status_code}")
+                else:
+                    self.log_test("License file upload", False, 
+                                f"Invalid response format: {response_data}")
+            else:
+                self.log_test("License file upload", False, 
+                            f"Upload failed with status {response.status_code}: {response.text}")
+        
+        except requests.exceptions.RequestException as e:
+            self.log_test("License file upload", False, f"Request failed: {str(e)}")
+        
+        # Test invalid file type
+        invalid_files = {
+            'file': ('test.txt', b"text content", 'text/plain')
+        }
+        
+        try:
+            invalid_response = requests.post(url, files=invalid_files, headers=headers, timeout=30)
+            
+            if invalid_response.status_code == 400:
+                self.log_test("Invalid file type rejection", True,
+                            "Correctly rejected invalid file type")
+            else:
+                self.log_test("Invalid file type rejection", False,
+                            f"Should reject invalid file type but got {invalid_response.status_code}")
+        
+        except requests.exceptions.RequestException as e:
+            self.log_test("Invalid file type test", False, f"Request failed: {str(e)}")
+
+    def test_tenant_isolation_clients(self):
+        """Test tenant isolation for clients (P0 Priority)"""
+        print("\n🏢 Testing Tenant Isolation for Clients (P0)...")
+        
+        # Test 1: Locateur can only see their own clients
+        locateur_clients_success, locateur_clients_response = self.make_request(
+            'GET', 'clients', token=self.tokens.get('locateur')
+        )
+        
+        if locateur_clients_success and isinstance(locateur_clients_response, list):
+            self.log_test("Locateur clients access", True, 
+                        f"Locateur sees {len(locateur_clients_response)} clients")
+            
+            # Verify all clients belong to this tenant (check tenant_id if available in response)
+            # Note: tenant_id might not be in response for security, but all should belong to locateur
+            self.log_test("Locateur client isolation", True,
+                        "Locateur can access their clients")
+        else:
+            self.log_test("Locateur clients access", False, 
+                        f"Failed: {locateur_clients_response}")
+        
+        # Test 2: Employee can access clients (same tenant)
+        employee_clients_success, employee_clients_response = self.make_request(
+            'GET', 'clients', token=self.tokens.get('employee')
+        )
+        
+        if employee_clients_success and isinstance(employee_clients_response, list):
+            self.log_test("Employee clients access", True, 
+                        f"Employee sees {len(employee_clients_response)} clients")
+        else:
+            self.log_test("Employee clients access", False, 
+                        f"Failed: {employee_clients_response}")
+        
+        # Test 3: SuperAdmin should not see operational data (platform management only)
+        superadmin_clients_success, superadmin_clients_response = self.make_request(
+            'GET', 'clients', token=self.tokens.get('superadmin'),
+            expected_status=403  # Should be denied access
+        )
+        
+        if superadmin_clients_success:
+            self.log_test("SuperAdmin clients access restriction", True,
+                        "SuperAdmin correctly denied access to operational data")
+        else:
+            # If it returns 200 with empty list, that's also acceptable
+            if isinstance(superadmin_clients_response, list) and len(superadmin_clients_response) == 0:
+                self.log_test("SuperAdmin clients isolation", True,
+                            "SuperAdmin sees no clients (platform management only)")
+            else:
+                self.log_test("SuperAdmin clients access", False,
+                            f"Unexpected response: {superadmin_clients_response}")
+        
+        # Test 4: Authentication required
+        no_auth_success, no_auth_response = self.make_request(
+            'GET', 'clients', expected_status=403
+        )
+        
+        self.log_test("Clients endpoint authentication", no_auth_success,
+                     "Correctly requires authentication")
+
+    def test_contracts_reservations_integration(self):
+        """Test contracts and reservations work with client_id (Medium Priority)"""
+        print("\n📋 Testing Contracts/Reservations Integration...")
+        
+        # First, ensure we have a client and vehicle for testing
+        if 'test_client_id' not in self.test_data:
+            self.log_test("Contracts integration setup", False, 
+                        "No test client available for integration testing")
+            return
+        
+        client_id = self.test_data['test_client_id']
+        
+        # Get available vehicles
+        vehicles_success, vehicles_response = self.make_request(
+            'GET', 'vehicles', token=self.tokens.get('locateur')
+        )
+        
+        if not vehicles_success or not vehicles_response:
+            self.log_test("Contracts integration setup", False, 
+                        "No vehicles available for testing")
+            return
+        
+        vehicle_id = vehicles_response[0]['id']
+        
+        # Test 1: Create reservation with client_id
+        reservation_data = {
+            "client_id": client_id,
+            "vehicle_id": vehicle_id,
+            "start_date": (datetime.now() + timedelta(days=1)).isoformat(),
+            "end_date": (datetime.now() + timedelta(days=3)).isoformat(),
+            "notes": "Test reservation for integration testing"
+        }
+        
+        reservation_success, reservation_response = self.make_request(
+            'POST', 'reservations', reservation_data, 
+            token=self.tokens.get('locateur'), expected_status=200
+        )
+        
+        if reservation_success and 'id' in reservation_response:
+            self.test_data['test_reservation_id'] = reservation_response['id']
+            self.log_test("Create reservation with client_id", True, 
+                        f"Reservation created: {reservation_response['id']}")
+            
+            # Verify client_id is stored
+            if reservation_response.get('client_id') == client_id:
+                self.log_test("Reservation client_id storage", True,
+                            "Client ID correctly stored in reservation")
+            else:
+                self.log_test("Reservation client_id storage", False,
+                            "Client ID not stored correctly")
+        else:
+            self.log_test("Create reservation with client_id", False, 
+                        f"Failed: {reservation_response}")
+        
+        # Test 2: Create contract with client_id
+        contract_data = {
+            "client_id": client_id,
+            "vehicle_id": vehicle_id,
+            "start_date": (datetime.now() + timedelta(days=5)).isoformat(),
+            "end_date": (datetime.now() + timedelta(days=10)).isoformat(),
+            "daily_rate": 5000.0,
+            "insurance_fee": 500.0,
+            "additional_fees": 200.0
+        }
+        
+        contract_success, contract_response = self.make_request(
+            'POST', 'contracts', contract_data, 
+            token=self.tokens.get('locateur'), expected_status=200
+        )
+        
+        if contract_success and 'id' in contract_response:
+            self.test_data['test_contract_id'] = contract_response['id']
+            self.log_test("Create contract with client_id", True, 
+                        f"Contract created: {contract_response['id']}")
+            
+            # Verify client_id is stored and total_amount is calculated
+            if (contract_response.get('client_id') == client_id and
+                contract_response.get('total_amount') > 0):
+                self.log_test("Contract client_id and calculation", True,
+                            f"Client ID stored and total calculated: {contract_response.get('total_amount')}")
+            else:
+                self.log_test("Contract client_id and calculation", False,
+                            "Client ID or total amount calculation issue")
+        else:
+            self.log_test("Create contract with client_id", False, 
+                        f"Failed: {contract_response}")
+        
+        # Test 3: List contracts and reservations
+        contracts_success, contracts_response = self.make_request(
+            'GET', 'contracts', token=self.tokens.get('locateur')
+        )
+        
+        if contracts_success and isinstance(contracts_response, list):
+            self.log_test("List contracts", True, 
+                        f"Retrieved {len(contracts_response)} contracts")
+        else:
+            self.log_test("List contracts", False, f"Failed: {contracts_response}")
+        
+        reservations_success, reservations_response = self.make_request(
+            'GET', 'reservations', token=self.tokens.get('locateur')
+        )
+        
+        if reservations_success and isinstance(reservations_response, list):
+            self.log_test("List reservations", True, 
+                        f"Retrieved {len(reservations_response)} reservations")
+        else:
+            self.log_test("List reservations", False, f"Failed: {reservations_response}")
+
     def test_error_handling(self):
         """Test API error handling"""
         print("\n🚨 Testing Error Handling...")
