@@ -1112,9 +1112,12 @@ class VehicleTrackAPITester:
         """Test API error handling"""
         print("\n🚨 Testing Error Handling...")
         
-        # Test non-existent resource (GET method)
+        # Test non-existent resource (PUT method on vehicles)
         not_found_success, not_found_response = self.make_request(
-            'GET', 'vehicles/non-existent-id', token=self.tokens.get('locateur'),
+            'PUT', 'vehicles/non-existent-id', 
+            {"registration_number": "TEST", "type": "sedan", "make": "Test", "model": "Test", 
+             "year": 2024, "chassis_number": "TEST", "color": "Blue", "daily_rate": 1000.0},
+            token=self.tokens.get('locateur'),
             expected_status=404
         )
         self.log_test("404 for non-existent resource", not_found_success,
