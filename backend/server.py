@@ -1549,16 +1549,18 @@ async def get_gps_events(
     current_user: User = Depends(get_current_user)
 ):
     """Get last 30 minutes events for all objects"""
-    if not GPS_API_KEY:
-        raise HTTPException(status_code=500, detail="GPS API key not configured")
+    gps_api_key, gps_api_url = await get_locateur_gps_config(current_user)
+    
+    if not gps_api_key:
+        raise HTTPException(status_code=400, detail="Clé API GPS non configurée")
     
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
-                f"{GPS_API_URL}",
+                gps_api_url,
                 params={
                     "api": "user",
-                    "key": GPS_API_KEY,
+                    "key": gps_api_key,
                     "cmd": "OBJECT_GET_LAST_EVENTS_30M"
                 }
             )
@@ -1566,10 +1568,96 @@ async def get_gps_events(
             return response.json()
     except httpx.RequestError as e:
         logging.error(f"GPS API request error: {e}")
-        raise HTTPException(status_code=502, detail=f"GPS API connection error: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Erreur de connexion à l'API GPS: {str(e)}")
     except Exception as e:
         logging.error(f"GPS API error: {e}")
-        raise HTTPException(status_code=500, detail=f"GPS API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur API GPS: {str(e)}")
+
+# ==================== NOTIFICATIONS ====================
+
+@api_router.get("/notifications")
+async def get_notifications(
+    current_user: User = Depends(get_current_user)
+):
+    """Get notifications for expiring documents (insurance, technical control)"""
+    tenant_id = get_tenant_id(current_user)
+    if not tenant_id:
+        return []
+    
+    notifications = []
+    now = datetime.now(timezone.utc)
+    warning_days = 30  # Alert 30 days before expiry
+    
+    # Get vehicles with expiring documents
+    vehicles = await db.vehicles.find({"tenant_id": tenant_id}, {"_id": 0}).to_list(1000)
+    
+    for vehicle in vehicles:
+        vehicle_name = f"{vehicle.get('make', '')} {vehicle.get('model', '')} ({vehicle.get('registration_number', '')})"
+        
+        # Check insurance expiry
+        if vehicle.get('insurance_expiry'):
+            expiry = vehicle['insurance_expiry']
+            if isinstance(expiry, str):
+                expiry = datetime.fromisoformat(expiry.replace('Z', '+00:00'))
+            days_left = (expiry - now).days
+            
+            if days_left < 0:
+                notifications.append({
+                    "id": f"ins_{vehicle['id']}",
+                    "type": "danger",
+                    "category": "insurance",
+                    "title": "Assurance expirée" if True else "تأمين منتهي",
+                    "message": f"{vehicle_name} - Assurance expirée depuis {abs(days_left)} jours",
+                    "vehicle_id": vehicle['id'],
+                    "days_left": days_left,
+                    "created_at": now.isoformat()
+                })
+            elif days_left <= warning_days:
+                notifications.append({
+                    "id": f"ins_{vehicle['id']}",
+                    "type": "warning",
+                    "category": "insurance",
+                    "title": "Assurance expire bientôt",
+                    "message": f"{vehicle_name} - Assurance expire dans {days_left} jours",
+                    "vehicle_id": vehicle['id'],
+                    "days_left": days_left,
+                    "created_at": now.isoformat()
+                })
+        
+        # Check technical control expiry
+        if vehicle.get('technical_control_expiry'):
+            expiry = vehicle['technical_control_expiry']
+            if isinstance(expiry, str):
+                expiry = datetime.fromisoformat(expiry.replace('Z', '+00:00'))
+            days_left = (expiry - now).days
+            
+            if days_left < 0:
+                notifications.append({
+                    "id": f"tech_{vehicle['id']}",
+                    "type": "danger",
+                    "category": "technical_control",
+                    "title": "Contrôle technique expiré",
+                    "message": f"{vehicle_name} - Contrôle technique expiré depuis {abs(days_left)} jours",
+                    "vehicle_id": vehicle['id'],
+                    "days_left": days_left,
+                    "created_at": now.isoformat()
+                })
+            elif days_left <= warning_days:
+                notifications.append({
+                    "id": f"tech_{vehicle['id']}",
+                    "type": "warning",
+                    "category": "technical_control",
+                    "title": "Contrôle technique expire bientôt",
+                    "message": f"{vehicle_name} - Contrôle technique expire dans {days_left} jours",
+                    "vehicle_id": vehicle['id'],
+                    "days_left": days_left,
+                    "created_at": now.isoformat()
+                })
+    
+    # Sort by urgency (dangers first, then by days left)
+    notifications.sort(key=lambda x: (0 if x['type'] == 'danger' else 1, x.get('days_left', 999)))
+    
+    return notifications
 
 # ==================== MESSAGING ROUTES ====================
 
