@@ -417,6 +417,19 @@ async def login(user_login: UserLogin):
     if not verify_password(user_login.password, user_doc.get('password', '')):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
+    # Check if user is suspended (except superadmin)
+    if user_doc.get('is_suspended') and user_doc.get('role') != UserRole.SUPERADMIN:
+        raise HTTPException(status_code=403, detail="Votre compte est suspendu. Contactez l'administrateur.")
+    
+    # Check subscription expiry for locateur
+    if user_doc.get('role') == UserRole.LOCATEUR:
+        subscription_end = user_doc.get('subscription_end')
+        if subscription_end:
+            if isinstance(subscription_end, str):
+                subscription_end = datetime.fromisoformat(subscription_end)
+            if subscription_end < datetime.now(timezone.utc):
+                raise HTTPException(status_code=403, detail="Votre abonnement a expiré. Veuillez contacter l'administrateur pour renouveler.")
+    
     del user_doc['password']
     del user_doc['_id']
     
