@@ -11,6 +11,7 @@ import EmployeesPage from './pages/EmployeesPage';
 import ClientsPage from './pages/ClientsPage';
 import ReservationsPage from './pages/ReservationsPage';
 import GPSTrackingPage from './pages/GPSTrackingPage';
+import SettingsPage from './pages/SettingsPage';
 import ContractsPage from './pages/ContractsPage';
 import PaymentsPage from './pages/PaymentsPage';
 import MaintenancePage from './pages/MaintenancePage';
