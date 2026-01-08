@@ -1151,7 +1151,7 @@ class VehicleTrackAPITester:
                          "Test client deleted successfully")
         
         # Delete test vehicles created in bug fix tests
-        for vehicle_key in ['vehicle_with_insurance_id', 'vehicle_without_insurance_id', 'test_vehicle_id']:
+        for vehicle_key in ['vehicle_with_insurance_id', 'vehicle_without_insurance_id', 'test_vehicle_id', 'gps_vehicle_id']:
             if vehicle_key in self.test_data:
                 delete_success, delete_response = self.make_request(
                     'DELETE', f'vehicles/{self.test_data[vehicle_key]}',
