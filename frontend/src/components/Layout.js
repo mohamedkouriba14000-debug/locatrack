@@ -241,22 +241,97 @@ const Layout = ({ children }) => {
             <span className="text-sm text-slate-600 font-medium">{t('connected')}</span>
           </div>
           {user?.role !== 'superadmin' && (
-            <Link to="/messages">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="relative hover:bg-slate-100"
-                data-testid="notifications-button"
-              >
-                <MessageCircle size={20} className="text-slate-600" />
-                {unreadCount > 0 && (
-                  <>
-                    <span className="absolute top-1 end-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-                    <span className="absolute top-1 end-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                  </>
+            <div className="flex items-center gap-2">
+              {/* Notifications Bell */}
+              <div className="relative">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="relative hover:bg-slate-100"
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  data-testid="notifications-bell"
+                >
+                  <Bell size={20} className={notifications.length > 0 ? 'text-orange-500' : 'text-slate-600'} />
+                  {notifications.filter(n => n.type === 'danger').length > 0 && (
+                    <>
+                      <span className="absolute top-1 end-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                      <span className="absolute top-1 end-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </>
+                  )}
+                  {notifications.length > 0 && notifications.filter(n => n.type === 'danger').length === 0 && (
+                    <span className="absolute -top-1 -end-1 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                      {notifications.length}
+                    </span>
+                  )}
+                </Button>
+                
+                {/* Notifications Dropdown */}
+                {showNotifications && (
+                  <div className="absolute end-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border-2 border-slate-200 z-50 overflow-hidden">
+                    <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 border-b border-slate-200">
+                      <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+                        <Bell size={16} className="text-orange-500" />
+                        {language === 'fr' ? 'Notifications' : 'الإشعارات'}
+                        {notifications.length > 0 && (
+                          <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">{notifications.length}</span>
+                        )}
+                      </h3>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="p-4 text-center text-slate-500 text-sm">
+                          {language === 'fr' ? 'Aucune notification' : 'لا توجد إشعارات'}
+                        </div>
+                      ) : (
+                        notifications.map((notif, idx) => (
+                          <div 
+                            key={notif.id || idx} 
+                            className={`p-3 border-b border-slate-100 hover:bg-slate-50 ${notif.type === 'danger' ? 'bg-red-50' : 'bg-orange-50/50'}`}
+                          >
+                            <div className="flex items-start gap-2">
+                              <AlertTriangle size={16} className={notif.type === 'danger' ? 'text-red-500 mt-0.5' : 'text-orange-500 mt-0.5'} />
+                              <div className="flex-1">
+                                <p className={`text-sm font-medium ${notif.type === 'danger' ? 'text-red-700' : 'text-orange-700'}`}>
+                                  {notif.title}
+                                </p>
+                                <p className="text-xs text-slate-600 mt-0.5">{notif.message}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    {notifications.length > 0 && (
+                      <div className="p-2 bg-slate-50 border-t border-slate-200">
+                        <Link to="/fleet" onClick={() => setShowNotifications(false)}>
+                          <Button variant="ghost" size="sm" className="w-full text-xs text-slate-600">
+                            {language === 'fr' ? 'Voir les véhicules' : 'عرض المركبات'}
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 )}
-              </Button>
-            </Link>
+              </div>
+              
+              {/* Messages Button */}
+              <Link to="/messages">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="relative hover:bg-slate-100"
+                  data-testid="notifications-button"
+                >
+                  <MessageCircle size={20} className="text-slate-600" />
+                  {unreadCount > 0 && (
+                    <>
+                      <span className="absolute top-1 end-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                      <span className="absolute top-1 end-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </>
+                  )}
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
         
