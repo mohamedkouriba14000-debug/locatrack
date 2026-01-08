@@ -57,6 +57,7 @@ const AppRoutes = () => {
       <Route path="/fleet" element={<ProtectedRoute allowedRoles={['locateur', 'employee']}><FleetPage /></ProtectedRoute>} />
       <Route path="/employees" element={<ProtectedRoute allowedRoles={['locateur']}><EmployeesPage /></ProtectedRoute>} />
       <Route path="/clients" element={<ProtectedRoute allowedRoles={['locateur', 'employee']}><ClientsPage /></ProtectedRoute>} />
+      <Route path="/gps-tracking" element={<ProtectedRoute allowedRoles={['locateur', 'employee']}><GPSTrackingPage /></ProtectedRoute>} />
       <Route path="/reservations" element={<ProtectedRoute allowedRoles={['locateur', 'employee']}><ReservationsPage /></ProtectedRoute>} />
       <Route path="/contracts" element={<ProtectedRoute allowedRoles={['locateur', 'employee']}><ContractsPage /></ProtectedRoute>} />
       <Route path="/payments" element={<ProtectedRoute allowedRoles={['locateur', 'employee']}><PaymentsPage /></ProtectedRoute>} />
