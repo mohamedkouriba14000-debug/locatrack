@@ -64,6 +64,7 @@ const Layout = ({ children }) => {
       return [
         { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard' },
         { icon: Car, label: t('fleet'), path: '/fleet' },
+        { icon: MapPin, label: language === 'fr' ? 'Suivi GPS' : 'تتبع GPS', path: '/gps-tracking' },
         { icon: Users, label: language === 'fr' ? 'Employés' : 'الموظفون', path: '/employees' },
         { icon: UserCheck, label: language === 'fr' ? 'Clients' : 'العملاء', path: '/clients' },
         { icon: Calendar, label: t('reservations'), path: '/reservations' },
@@ -79,6 +80,7 @@ const Layout = ({ children }) => {
     return [
       { icon: LayoutDashboard, label: t('dashboard'), path: '/dashboard' },
       { icon: Car, label: t('fleet'), path: '/fleet' },
+      { icon: MapPin, label: language === 'fr' ? 'Suivi GPS' : 'تتبع GPS', path: '/gps-tracking' },
       { icon: UserCheck, label: language === 'fr' ? 'Clients' : 'العملاء', path: '/clients' },
       { icon: Calendar, label: t('reservations'), path: '/reservations' },
       { icon: FileText, label: t('contracts'), path: '/contracts' },
