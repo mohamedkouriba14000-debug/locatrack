@@ -1180,6 +1180,107 @@ async def delete_user(
     
     return {"message": "User deleted successfully"}
 
+@api_router.post("/admin/users/{user_id}/suspend")
+async def suspend_user(
+    user_id: str,
+    reason: Optional[str] = None,
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
+):
+    """Suspend a user account (SuperAdmin only)"""
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot suspend your own account")
+    
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_suspended": True, "suspension_reason": reason or "Suspendu par l'administrateur"}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User suspended successfully"}
+
+@api_router.post("/admin/users/{user_id}/activate")
+async def activate_user(
+    user_id: str,
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
+):
+    """Activate a suspended user account (SuperAdmin only)"""
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_suspended": False, "suspension_reason": None}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User activated successfully"}
+
+@api_router.post("/admin/users/{user_id}/subscription")
+async def update_subscription(
+    user_id: str,
+    subscription_type: str,  # trial, annual, lifetime
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
+):
+    """Update user subscription (SuperAdmin only)"""
+    now = datetime.now(timezone.utc)
+    
+    if subscription_type == "trial":
+        end_date = now + timedelta(days=15)
+    elif subscription_type == "annual":
+        end_date = now + timedelta(days=365)
+    elif subscription_type == "lifetime":
+        end_date = now + timedelta(days=36500)  # 100 years
+    else:
+        raise HTTPException(status_code=400, detail="Invalid subscription type")
+    
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "subscription_type": subscription_type,
+            "subscription_start": now.isoformat(),
+            "subscription_end": end_date.isoformat(),
+            "is_suspended": False  # Automatically activate when subscription is updated
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": f"Subscription updated to {subscription_type}", "expires": end_date.isoformat()}
+
+@api_router.get("/admin/all-users")
+async def get_all_users(
+    current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
+):
+    """Get all users with full details (SuperAdmin only)"""
+    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    
+    # Process dates and add computed fields
+    for user in users:
+        for date_field in ['created_at', 'subscription_start', 'subscription_end']:
+            if user.get(date_field) and isinstance(user[date_field], str):
+                user[date_field] = datetime.fromisoformat(user[date_field])
+        
+        # Calculate days remaining
+        if user.get('subscription_end'):
+            sub_end = user['subscription_end']
+            if isinstance(sub_end, str):
+                sub_end = datetime.fromisoformat(sub_end)
+            days_remaining = (sub_end - datetime.now(timezone.utc)).days
+            user['days_remaining'] = max(0, days_remaining)
+            user['is_expired'] = days_remaining < 0
+        else:
+            user['days_remaining'] = None
+            user['is_expired'] = False
+        
+        # Get employee count if locateur
+        if user.get('role') == UserRole.LOCATEUR:
+            user['employee_count'] = await db.users.count_documents({"tenant_id": user['id'], "role": UserRole.EMPLOYEE})
+            user['vehicle_count'] = await db.vehicles.count_documents({"tenant_id": user['id']})
+    
+    return users
+
 @api_router.get("/admin/stats")
 async def get_admin_stats(
     current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
