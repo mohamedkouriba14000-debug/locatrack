@@ -1364,6 +1364,7 @@ class VehicleTrackAPITester:
         print("\n🔥 QUICK VALIDATION TESTS (P0)")
         self.test_dashboard_quick_validation()
         self.test_superadmin_enhanced_stats()
+        self.test_gps_tracking_backend_support()
         self.test_quick_sanity_checks()
         
         # Print summary
