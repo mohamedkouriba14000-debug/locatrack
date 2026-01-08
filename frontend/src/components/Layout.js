@@ -34,14 +34,29 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
   
   useEffect(() => {
     if (user?.role !== 'superadmin') {
       fetchUnreadCount();
-      const interval = setInterval(fetchUnreadCount, 10000);
+      fetchNotifications();
+      const interval = setInterval(() => {
+        fetchUnreadCount();
+        fetchNotifications();
+      }, 30000); // Check every 30 seconds
       return () => clearInterval(interval);
     }
   }, [user]);
+  
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get(`${API}/notifications`, { headers: getAuthHeaders() });
+      setNotifications(response.data || []);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
   
   const fetchUnreadCount = async () => {
     try {
