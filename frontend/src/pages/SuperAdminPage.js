@@ -8,7 +8,13 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
-import { Search, Building2, Users, Car, FileText, Trash2, Edit, Crown, ChevronDown, ChevronUp, DollarSign, UserCheck, AlertTriangle, Calendar } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { 
+  Search, Building2, Users, Car, FileText, Trash2, Edit, Crown, 
+  DollarSign, UserCheck, AlertTriangle, Calendar, Eye, Ban, 
+  CheckCircle, Clock, Shield, RefreshCw, MoreVertical, UserX,
+  Sparkles, TrendingUp
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { formatApiError } from '../utils/errorHandler';
 
@@ -17,25 +23,27 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const SuperAdminPage = () => {
   const { getAuthHeaders } = useAuth();
   const { language } = useLanguage();
-  const [locateurs, setLocateurs] = useState([]);
+  const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-  const [expandedLocateur, setExpandedLocateur] = useState(null);
-  const [employees, setEmployees] = useState({});
+  const [showSubscriptionDialog, setShowSubscriptionDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [formData, setFormData] = useState({ full_name: '', email: '', phone: '', company_name: '' });
+  const [subscriptionType, setSubscriptionType] = useState('annual');
   
   useEffect(() => { fetchData(); }, []);
   
   const fetchData = async () => {
     try {
-      const [locateursRes, statsRes] = await Promise.all([
-        axios.get(`${API}/admin/locateurs`, { headers: getAuthHeaders() }),
+      const [usersRes, statsRes] = await Promise.all([
+        axios.get(`${API}/admin/all-users`, { headers: getAuthHeaders() }),
         axios.get(`${API}/admin/stats`, { headers: getAuthHeaders() })
       ]);
-      setLocateurs(locateursRes.data);
+      setUsers(usersRes.data);
       setStats(statsRes.data);
     } catch (error) {
       toast.error(formatApiError(error));
@@ -44,24 +52,8 @@ const SuperAdminPage = () => {
     }
   };
   
-  const fetchEmployees = async (locateurId) => {
-    if (employees[locateurId]) {
-      setExpandedLocateur(expandedLocateur === locateurId ? null : locateurId);
-      return;
-    }
-    
-    try {
-      const response = await axios.get(`${API}/admin/users`, { headers: getAuthHeaders() });
-      const locateurEmployees = response.data.filter(u => u.tenant_id === locateurId && u.role === 'employee');
-      setEmployees({ ...employees, [locateurId]: locateurEmployees });
-      setExpandedLocateur(locateurId);
-    } catch (error) {
-      toast.error(formatApiError(error));
-    }
-  };
-  
   const handleEdit = (user) => {
-    setEditingUser(user);
+    setSelectedUser(user);
     setFormData({ 
       full_name: user.full_name, 
       email: user.email, 
@@ -74,7 +66,7 @@ const SuperAdminPage = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API}/admin/users/${editingUser.id}`, formData, { headers: getAuthHeaders() });
+      await axios.put(`${API}/admin/users/${selectedUser.id}`, formData, { headers: getAuthHeaders() });
       toast.success(language === 'fr' ? 'Utilisateur modifié' : 'تم تعديل المستخدم');
       setShowEditDialog(false);
       fetchData();
@@ -83,10 +75,50 @@ const SuperAdminPage = () => {
     }
   };
   
-  const handleDelete = async (userId, userName) => {
-    if (!window.confirm(`${language === 'fr' ? 'Supprimer' : 'حذف'} ${userName}? ${language === 'fr' ? 'Toutes les données seront supprimées.' : 'سيتم حذف جميع البيانات.'}`)) return;
+  const handleSuspend = async (user) => {
+    const reason = window.prompt(language === 'fr' ? 'Raison de la suspension (optionnel):' : 'سبب التعليق (اختياري):');
+    if (reason === null) return; // User cancelled
+    
     try {
-      await axios.delete(`${API}/admin/users/${userId}`, { headers: getAuthHeaders() });
+      await axios.post(`${API}/admin/users/${user.id}/suspend?reason=${encodeURIComponent(reason)}`, {}, { headers: getAuthHeaders() });
+      toast.success(language === 'fr' ? 'Compte suspendu' : 'تم تعليق الحساب');
+      fetchData();
+    } catch (error) {
+      toast.error(formatApiError(error));
+    }
+  };
+  
+  const handleActivate = async (user) => {
+    try {
+      await axios.post(`${API}/admin/users/${user.id}/activate`, {}, { headers: getAuthHeaders() });
+      toast.success(language === 'fr' ? 'Compte activé' : 'تم تفعيل الحساب');
+      fetchData();
+    } catch (error) {
+      toast.error(formatApiError(error));
+    }
+  };
+  
+  const openSubscriptionDialog = (user) => {
+    setSelectedUser(user);
+    setSubscriptionType(user.subscription_type || 'annual');
+    setShowSubscriptionDialog(true);
+  };
+  
+  const handleUpdateSubscription = async () => {
+    try {
+      await axios.post(`${API}/admin/users/${selectedUser.id}/subscription?subscription_type=${subscriptionType}`, {}, { headers: getAuthHeaders() });
+      toast.success(language === 'fr' ? 'Abonnement mis à jour' : 'تم تحديث الاشتراك');
+      setShowSubscriptionDialog(false);
+      fetchData();
+    } catch (error) {
+      toast.error(formatApiError(error));
+    }
+  };
+  
+  const handleDelete = async (user) => {
+    if (!window.confirm(`${language === 'fr' ? 'Supprimer définitivement' : 'حذف نهائي'} ${user.full_name}? ${language === 'fr' ? 'Toutes les données seront supprimées.' : 'سيتم حذف جميع البيانات.'}`)) return;
+    try {
+      await axios.delete(`${API}/admin/users/${user.id}`, { headers: getAuthHeaders() });
       toast.success(language === 'fr' ? 'Utilisateur supprimé' : 'تم حذف المستخدم');
       fetchData();
     } catch (error) {
@@ -94,244 +126,340 @@ const SuperAdminPage = () => {
     }
   };
   
-  const filteredLocateurs = locateurs.filter(l =>
-    l.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    l.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    l.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getStatusBadge = (user) => {
+    if (user.is_suspended) {
+      return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700 flex items-center gap-1"><Ban size={12} /> Suspendu</span>;
+    }
+    if (user.is_expired) {
+      return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-700 flex items-center gap-1"><Clock size={12} /> Expiré</span>;
+    }
+    return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700 flex items-center gap-1"><CheckCircle size={12} /> Actif</span>;
+  };
+  
+  const getSubscriptionBadge = (user) => {
+    if (user.role === 'superadmin') {
+      return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">Admin</span>;
+    }
+    if (user.role === 'employee') {
+      return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700">Employé</span>;
+    }
+    
+    const type = user.subscription_type || 'trial';
+    const badges = {
+      trial: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 flex items-center gap-1"><Clock size={12} /> Essai ({user.days_remaining}j)</span>,
+      annual: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700 flex items-center gap-1"><Crown size={12} /> Annuel</span>,
+      lifetime: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 flex items-center gap-1"><Sparkles size={12} /> Illimité</span>,
+    };
+    return badges[type] || badges.trial;
+  };
+  
+  const getRoleBadge = (role) => {
+    const badges = {
+      superadmin: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700 flex items-center gap-1"><Shield size={12} /> SuperAdmin</span>,
+      locateur: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 flex items-center gap-1"><Building2 size={12} /> Locateur</span>,
+      employee: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-cyan-100 text-cyan-700 flex items-center gap-1"><Users size={12} /> Employé</span>,
+    };
+    return badges[role] || role;
+  };
+  
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = 
+      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && !user.is_suspended && !user.is_expired) ||
+      (statusFilter === 'suspended' && user.is_suspended) ||
+      (statusFilter === 'expired' && user.is_expired);
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+  
+  // Calculate stats
+  const activeLocateurs = users.filter(u => u.role === 'locateur' && !u.is_suspended && !u.is_expired).length;
+  const trialUsers = users.filter(u => u.subscription_type === 'trial' && u.role === 'locateur').length;
+  const suspendedUsers = users.filter(u => u.is_suspended).length;
+  const expiredUsers = users.filter(u => u.is_expired && u.role === 'locateur').length;
   
   if (loading) return <Layout><div className="text-center py-12">{language === 'fr' ? 'Chargement...' : 'جاري التحميل...'}</div></Layout>;
   
   return (
     <Layout>
       <div>
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="font-heading font-bold text-4xl uppercase text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-red-600">
-            👑 {language === 'fr' ? 'Administration Plateforme' : 'إدارة المنصة'}
-          </h1>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="font-heading font-bold text-3xl uppercase text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+              👑 {language === 'fr' ? 'Gestion de la Plateforme' : 'إدارة المنصة'}
+            </h1>
+            <p className="text-slate-500 mt-1">{language === 'fr' ? 'Gérez tous les utilisateurs et abonnements' : 'إدارة جميع المستخدمين والاشتراكات'}</p>
+          </div>
+          <Button onClick={fetchData} variant="outline" className="border-2 border-purple-300 text-purple-600 hover:bg-purple-50">
+            <RefreshCw size={16} className="me-2" /> {language === 'fr' ? 'Actualiser' : 'تحديث'}
+          </Button>
         </div>
         
-        {/* Platform Stats - Row 1 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        {/* Stats Cards - Row 1 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <Shield className="text-purple-500" size={24} />
+                <div>
+                  <p className="text-2xl font-bold text-purple-800">{stats.superadmins || 0}</p>
+                  <p className="text-xs text-purple-600">SuperAdmins</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <Building2 className="text-amber-500" size={24} />
                 <div>
-                  <p className="text-sm text-amber-600 font-medium">{language === 'fr' ? 'Locateurs' : 'المؤجرون'}</p>
-                  <p className="text-3xl font-bold text-amber-800">{stats.total_locateurs || 0}</p>
+                  <p className="text-2xl font-bold text-amber-800">{stats.total_locateurs || 0}</p>
+                  <p className="text-xs text-amber-600">Locateurs</p>
                 </div>
-                <Building2 className="text-amber-500" size={32} />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-blue-600 font-medium">{language === 'fr' ? 'Employés' : 'الموظفون'}</p>
-                  <p className="text-3xl font-bold text-blue-800">{stats.total_employees || 0}</p>
-                </div>
-                <Users className="text-blue-500" size={32} />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-teal-50 to-teal-100 border-2 border-teal-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-teal-600 font-medium">{language === 'fr' ? 'Clients' : 'العملاء'}</p>
-                  <p className="text-3xl font-bold text-teal-800">{stats.total_clients_platform || 0}</p>
-                </div>
-                <UserCheck className="text-teal-500" size={32} />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-emerald-600 font-medium">{language === 'fr' ? 'Véhicules' : 'المركبات'}</p>
-                  <p className="text-3xl font-bold text-emerald-800">{stats.total_vehicles_platform || 0}</p>
-                  <p className="text-xs text-emerald-600">{stats.available_vehicles_platform || 0} {language === 'fr' ? 'dispo' : 'متاح'} / {stats.rented_vehicles_platform || 0} {language === 'fr' ? 'loués' : 'مؤجر'}</p>
-                </div>
-                <Car className="text-emerald-500" size={32} />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Platform Stats - Row 2 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-violet-50 to-violet-100 border-2 border-violet-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-violet-600 font-medium">{language === 'fr' ? 'Contrats' : 'العقود'}</p>
-                  <p className="text-3xl font-bold text-violet-800">{stats.total_contracts_platform || 0}</p>
-                  <p className="text-xs text-violet-600">{stats.active_contracts_platform || 0} {language === 'fr' ? 'actifs' : 'نشط'}</p>
-                </div>
-                <FileText className="text-violet-500" size={32} />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-2 border-cyan-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-cyan-600 font-medium">{language === 'fr' ? 'Réservations' : 'الحجوزات'}</p>
-                  <p className="text-3xl font-bold text-cyan-800">{stats.total_reservations_platform || 0}</p>
-                </div>
-                <Calendar className="text-cyan-500" size={32} />
               </div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="text-green-500" size={24} />
                 <div>
-                  <p className="text-sm text-green-600 font-medium">{language === 'fr' ? 'Revenus Total' : 'إجمالي الإيرادات'}</p>
-                  <p className="text-2xl font-bold text-green-800">{(stats.total_revenue_platform || 0).toLocaleString()} DZD</p>
+                  <p className="text-2xl font-bold text-green-800">{activeLocateurs}</p>
+                  <p className="text-xs text-green-600">Actifs</p>
                 </div>
-                <DollarSign className="text-green-500" size={32} />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <Clock className="text-blue-500" size={24} />
+                <div>
+                  <p className="text-2xl font-bold text-blue-800">{trialUsers}</p>
+                  <p className="text-xs text-blue-600">En essai</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="text-orange-500" size={24} />
+                <div>
+                  <p className="text-2xl font-bold text-orange-800">{expiredUsers}</p>
+                  <p className="text-xs text-orange-600">Expirés</p>
+                </div>
               </div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2">
+                <Ban className="text-red-500" size={24} />
                 <div>
-                  <p className="text-sm text-red-600 font-medium">{language === 'fr' ? 'Infractions' : 'المخالفات'}</p>
-                  <p className="text-3xl font-bold text-red-800">{stats.pending_infractions_platform || 0}</p>
-                  <p className="text-xs text-red-600">{language === 'fr' ? 'en attente' : 'في الانتظار'}</p>
+                  <p className="text-2xl font-bold text-red-800">{suspendedUsers}</p>
+                  <p className="text-xs text-red-600">Suspendus</p>
                 </div>
-                <AlertTriangle className="text-red-500" size={32} />
               </div>
             </CardContent>
           </Card>
         </div>
         
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
-            <Input 
-              placeholder={language === 'fr' ? 'Rechercher un locateur...' : 'البحث عن مؤجر...'} 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-              className="ps-10 h-12 bg-white border-2 border-slate-300 focus:border-amber-500" 
-            />
-          </div>
-        </div>
+        {/* Filters */}
+        <Card className="mb-6 bg-white border-2 border-slate-200">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex-1 min-w-[200px]">
+                <div className="relative">
+                  <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+                  <Input 
+                    placeholder={language === 'fr' ? 'Rechercher par nom, email, entreprise...' : 'البحث بالاسم أو البريد أو الشركة...'} 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                    className="ps-10 h-10 bg-slate-50 border-slate-300" 
+                  />
+                </div>
+              </div>
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-[150px] h-10">
+                  <SelectValue placeholder="Rôle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{language === 'fr' ? 'Tous les rôles' : 'كل الأدوار'}</SelectItem>
+                  <SelectItem value="superadmin">SuperAdmin</SelectItem>
+                  <SelectItem value="locateur">Locateur</SelectItem>
+                  <SelectItem value="employee">Employé</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[150px] h-10">
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{language === 'fr' ? 'Tous les statuts' : 'كل الحالات'}</SelectItem>
+                  <SelectItem value="active">{language === 'fr' ? 'Actifs' : 'نشط'}</SelectItem>
+                  <SelectItem value="suspended">{language === 'fr' ? 'Suspendus' : 'معلق'}</SelectItem>
+                  <SelectItem value="expired">{language === 'fr' ? 'Expirés' : 'منتهي'}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
         
-        {/* Locateurs List */}
-        <div className="space-y-4">
-          {filteredLocateurs.map((locateur) => (
-            <Card key={locateur.id} className="bg-white border-2 border-slate-200 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl">
-                      <Building2 size={28} className="text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl font-bold text-slate-800">{locateur.company_name}</CardTitle>
-                      <p className="text-sm text-slate-500">{locateur.full_name} • {locateur.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button onClick={() => handleEdit(locateur)} variant="outline" size="sm" className="border-2 border-cyan-300 text-cyan-600 hover:bg-cyan-50">
-                      <Edit size={16} />
-                    </Button>
-                    <Button onClick={() => handleDelete(locateur.id, locateur.company_name)} variant="outline" size="sm" className="border-2 border-red-300 text-red-600 hover:bg-red-50">
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {/* Locateur Stats */}
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-center">
-                    <Car size={20} className="mx-auto text-emerald-600 mb-1" />
-                    <p className="text-2xl font-bold text-emerald-700">{locateur.vehicle_count || 0}</p>
-                    <p className="text-xs text-emerald-600">{language === 'fr' ? 'Véhicules' : 'مركبات'}</p>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-center">
-                    <Users size={20} className="mx-auto text-blue-600 mb-1" />
-                    <p className="text-2xl font-bold text-blue-700">{locateur.employee_count || 0}</p>
-                    <p className="text-xs text-blue-600">{language === 'fr' ? 'Employés' : 'موظفون'}</p>
-                  </div>
-                  <div className="p-3 bg-violet-50 rounded-lg border border-violet-200 text-center">
-                    <FileText size={20} className="mx-auto text-violet-600 mb-1" />
-                    <p className="text-2xl font-bold text-violet-700">{locateur.contract_count || 0}</p>
-                    <p className="text-xs text-violet-600">{language === 'fr' ? 'Contrats' : 'عقود'}</p>
-                  </div>
-                </div>
-                
-                {/* Employees Toggle */}
-                {locateur.employee_count > 0 && (
-                  <div>
-                    <Button 
-                      onClick={() => fetchEmployees(locateur.id)} 
-                      variant="ghost" 
-                      className="w-full justify-between text-slate-600 hover:text-slate-800 hover:bg-slate-100"
-                    >
-                      <span>{language === 'fr' ? 'Voir les employés' : 'عرض الموظفين'} ({locateur.employee_count})</span>
-                      {expandedLocateur === locateur.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                    </Button>
-                    
-                    {expandedLocateur === locateur.id && employees[locateur.id] && (
-                      <div className="mt-3 space-y-2 border-t border-slate-200 pt-3">
-                        {employees[locateur.id].map((emp) => (
-                          <div key={emp.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
-                                {emp.full_name?.charAt(0)}
-                              </div>
-                              <div>
-                                <p className="font-medium text-slate-800">{emp.full_name}</p>
-                                <p className="text-xs text-slate-500">{emp.email}</p>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button onClick={() => handleEdit(emp)} variant="ghost" size="sm" className="text-cyan-600">
-                                <Edit size={14} />
-                              </Button>
-                              <Button onClick={() => handleDelete(emp.id, emp.full_name)} variant="ghost" size="sm" className="text-red-600">
-                                <Trash2 size={14} />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
+        {/* Users Table */}
+        <Card className="bg-white border-2 border-slate-200 shadow-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-slate-100 to-slate-50 border-b-2 border-slate-200">
+                <tr>
+                  <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Statut' : 'الحالة'}</th>
+                  <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Abonnement' : 'الاشتراك'}</th>
+                  <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Rôle' : 'الدور'}</th>
+                  <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Nom / Entreprise' : 'الاسم / الشركة'}</th>
+                  <th className="text-start p-4 font-semibold text-slate-700">Email</th>
+                  <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Créé le' : 'تاريخ الإنشاء'}</th>
+                  <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Stats' : 'إحصائيات'}</th>
+                  <th className="text-center p-4 font-semibold text-slate-700">{language === 'fr' ? 'Actions' : 'الإجراءات'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user, index) => (
+                  <tr 
+                    key={user.id} 
+                    className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${user.is_suspended ? 'bg-red-50/50' : user.is_expired ? 'bg-orange-50/50' : ''}`}
+                  >
+                    <td className="p-4">{getStatusBadge(user)}</td>
+                    <td className="p-4">{getSubscriptionBadge(user)}</td>
+                    <td className="p-4">{getRoleBadge(user.role)}</td>
+                    <td className="p-4">
+                      <div>
+                        <p className="font-semibold text-slate-800">{user.full_name}</p>
+                        {user.company_name && (
+                          <p className="text-sm text-slate-500 flex items-center gap-1">
+                            <Building2 size={12} /> {user.company_name}
+                          </p>
+                        )}
                       </div>
-                    )}
-                  </div>
-                )}
-                
-                <p className="text-xs text-slate-400 mt-3">
-                  {language === 'fr' ? 'Inscrit le' : 'مسجل في'}: {new Date(locateur.created_at).toLocaleDateString()}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        
-        {filteredLocateurs.length === 0 && (
-          <div className="text-center py-12">
-            <Building2 size={48} className="mx-auto text-slate-300 mb-4" />
-            <p className="text-slate-500">{language === 'fr' ? 'Aucun locateur inscrit' : 'لا يوجد مؤجرون مسجلون'}</p>
+                    </td>
+                    <td className="p-4">
+                      <p className="text-slate-600">{user.email}</p>
+                      {user.phone && <p className="text-xs text-slate-400">{user.phone}</p>}
+                    </td>
+                    <td className="p-4">
+                      <p className="text-sm text-slate-600">
+                        {user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : '-'}
+                      </p>
+                      {user.subscription_end && user.role === 'locateur' && (
+                        <p className="text-xs text-slate-400">
+                          {language === 'fr' ? 'Expire' : 'ينتهي'}: {new Date(user.subscription_end).toLocaleDateString('fr-FR')}
+                        </p>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      {user.role === 'locateur' && (
+                        <div className="flex gap-3 text-xs">
+                          <span className="flex items-center gap-1 text-emerald-600">
+                            <Car size={12} /> {user.vehicle_count || 0}
+                          </span>
+                          <span className="flex items-center gap-1 text-blue-600">
+                            <Users size={12} /> {user.employee_count || 0}
+                          </span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-center gap-1">
+                        {user.role !== 'superadmin' && (
+                          <>
+                            <Button 
+                              onClick={() => handleEdit(user)} 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-cyan-600 hover:bg-cyan-50 h-8 w-8 p-0"
+                              title={language === 'fr' ? 'Modifier' : 'تعديل'}
+                            >
+                              <Edit size={16} />
+                            </Button>
+                            
+                            {user.role === 'locateur' && (
+                              <Button 
+                                onClick={() => openSubscriptionDialog(user)} 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-emerald-600 hover:bg-emerald-50 h-8 w-8 p-0"
+                                title={language === 'fr' ? 'Gérer abonnement' : 'إدارة الاشتراك'}
+                              >
+                                <Crown size={16} />
+                              </Button>
+                            )}
+                            
+                            {user.is_suspended ? (
+                              <Button 
+                                onClick={() => handleActivate(user)} 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-green-600 hover:bg-green-50 h-8 w-8 p-0"
+                                title={language === 'fr' ? 'Activer' : 'تفعيل'}
+                              >
+                                <CheckCircle size={16} />
+                              </Button>
+                            ) : (
+                              <Button 
+                                onClick={() => handleSuspend(user)} 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-orange-600 hover:bg-orange-50 h-8 w-8 p-0"
+                                title={language === 'fr' ? 'Suspendre' : 'تعليق'}
+                              >
+                                <Ban size={16} />
+                              </Button>
+                            )}
+                            
+                            <Button 
+                              onClick={() => handleDelete(user)} 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600 hover:bg-red-50 h-8 w-8 p-0"
+                              title={language === 'fr' ? 'Supprimer' : 'حذف'}
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </>
+                        )}
+                        {user.role === 'superadmin' && (
+                          <span className="text-xs text-slate-400 italic">{language === 'fr' ? 'Protégé' : 'محمي'}</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
+          
+          {filteredUsers.length === 0 && (
+            <div className="text-center py-12">
+              <Users size={48} className="mx-auto text-slate-300 mb-4" />
+              <p className="text-slate-500">{language === 'fr' ? 'Aucun utilisateur trouvé' : 'لم يتم العثور على مستخدمين'}</p>
+            </div>
+          )}
+        </Card>
         
-        {/* Edit Dialog */}
+        {/* Edit User Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent className="max-w-md bg-white border-2 border-slate-200">
             <DialogHeader>
-              <DialogTitle className="text-amber-600 font-heading text-2xl">{language === 'fr' ? 'Modifier' : 'تعديل'}</DialogTitle>
-              <DialogDescription className="text-slate-600">{editingUser?.full_name}</DialogDescription>
+              <DialogTitle className="text-purple-600 font-heading text-xl flex items-center gap-2">
+                <Edit size={20} /> {language === 'fr' ? 'Modifier l\'utilisateur' : 'تعديل المستخدم'}
+              </DialogTitle>
+              <DialogDescription className="text-slate-600">{selectedUser?.email}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleUpdate} className="space-y-4">
-              {editingUser?.role === 'locateur' && (
+              {selectedUser?.role === 'locateur' && (
                 <div className="space-y-2">
                   <Label className="text-slate-700 font-semibold">{language === 'fr' ? 'Nom entreprise' : 'اسم الشركة'}</Label>
                   <Input value={formData.company_name} onChange={(e) => setFormData({...formData, company_name: e.target.value})} className="bg-white border-2 border-slate-300" />
@@ -350,10 +478,87 @@ const SuperAdminPage = () => {
                 <Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="bg-white border-2 border-slate-300" />
               </div>
               <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} className="border-2 border-slate-300">{language === 'fr' ? 'Annuler' : 'إلغاء'}</Button>
-                <Button type="submit" className="bg-gradient-to-r from-amber-500 to-red-500 hover:from-amber-600 hover:to-red-600 text-white">{language === 'fr' ? 'Enregistrer' : 'حفظ'}</Button>
+                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} className="border-2 border-slate-300">
+                  {language === 'fr' ? 'Annuler' : 'إلغاء'}
+                </Button>
+                <Button type="submit" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white">
+                  {language === 'fr' ? 'Enregistrer' : 'حفظ'}
+                </Button>
               </div>
             </form>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Subscription Dialog */}
+        <Dialog open={showSubscriptionDialog} onOpenChange={setShowSubscriptionDialog}>
+          <DialogContent className="max-w-md bg-white border-2 border-slate-200">
+            <DialogHeader>
+              <DialogTitle className="text-emerald-600 font-heading text-xl flex items-center gap-2">
+                <Crown size={20} /> {language === 'fr' ? 'Gérer l\'abonnement' : 'إدارة الاشتراك'}
+              </DialogTitle>
+              <DialogDescription className="text-slate-600">
+                {selectedUser?.full_name} - {selectedUser?.company_name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <p className="text-sm text-slate-600 mb-2">{language === 'fr' ? 'Abonnement actuel:' : 'الاشتراك الحالي:'}</p>
+                <div className="flex items-center gap-2">
+                  {getSubscriptionBadge(selectedUser || {})}
+                  {selectedUser?.subscription_end && (
+                    <span className="text-sm text-slate-500">
+                      → {new Date(selectedUser.subscription_end).toLocaleDateString('fr-FR')}
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-slate-700 font-semibold">{language === 'fr' ? 'Nouveau type d\'abonnement' : 'نوع الاشتراك الجديد'}</Label>
+                <Select value={subscriptionType} onValueChange={setSubscriptionType}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="trial">
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} className="text-blue-500" />
+                        {language === 'fr' ? 'Essai (15 jours)' : 'تجريبي (15 يوم)'}
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="annual">
+                      <div className="flex items-center gap-2">
+                        <Crown size={14} className="text-emerald-500" />
+                        {language === 'fr' ? 'Annuel (1 an)' : 'سنوي (سنة واحدة)'}
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="lifetime">
+                      <div className="flex items-center gap-2">
+                        <Sparkles size={14} className="text-amber-500" />
+                        {language === 'fr' ? 'Illimité (à vie)' : 'غير محدود (مدى الحياة)'}
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                <p className="text-sm text-emerald-700">
+                  {subscriptionType === 'trial' && (language === 'fr' ? '⏱️ L\'utilisateur aura 15 jours d\'accès à partir d\'aujourd\'hui.' : '⏱️ سيحصل المستخدم على 15 يومًا من الوصول اعتبارًا من اليوم.')}
+                  {subscriptionType === 'annual' && (language === 'fr' ? '📅 L\'utilisateur aura 1 an d\'accès à partir d\'aujourd\'hui.' : '📅 سيحصل المستخدم على سنة واحدة من الوصول اعتبارًا من اليوم.')}
+                  {subscriptionType === 'lifetime' && (language === 'fr' ? '✨ L\'utilisateur aura un accès illimité permanent.' : '✨ سيحصل المستخدم على وصول غير محدود دائم.')}
+                </p>
+              </div>
+              
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => setShowSubscriptionDialog(false)} className="border-2 border-slate-300">
+                  {language === 'fr' ? 'Annuler' : 'إلغاء'}
+                </Button>
+                <Button onClick={handleUpdateSubscription} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white">
+                  {language === 'fr' ? 'Mettre à jour' : 'تحديث'}
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
