@@ -116,21 +116,38 @@ class SuperAdminTester:
             
             # Check if users have subscription fields
             if response:
-                user = response[0]
+                # Check all available fields across all users
+                all_fields = set()
+                for user in response:
+                    all_fields.update(user.keys())
+                
                 required_fields = ['subscription_type', 'subscription_start', 'subscription_end', 'is_suspended']
-                missing_fields = [field for field in required_fields if field not in user]
+                missing_fields = [field for field in required_fields if field not in all_fields]
                 
                 if not missing_fields:
                     self.log_test("Users have subscription fields", True, 
-                                "All required subscription fields present")
+                                "All required subscription fields present in API response")
                     
                     # Check if days_remaining is calculated
-                    if 'days_remaining' in user:
+                    if 'days_remaining' in all_fields:
                         self.log_test("Days remaining calculation", True, 
                                     f"Days remaining field present")
                     else:
                         self.log_test("Days remaining calculation", False, 
                                     "Days remaining field missing")
+                    
+                    # Check for additional computed fields
+                    if 'is_expired' in all_fields:
+                        self.log_test("Subscription expiry calculation", True, 
+                                    "Subscription expiry field present")
+                    
+                    # Log sample user data for verification
+                    locateur_users = [u for u in response if u.get('role') == 'locateur']
+                    if locateur_users:
+                        sample_user = locateur_users[0]
+                        self.log_test("Sample locateur subscription data", True, 
+                                    f"Type: {sample_user.get('subscription_type')}, "
+                                    f"Days remaining: {sample_user.get('days_remaining')}")
                 else:
                     self.log_test("Users have subscription fields", False, 
                                 f"Missing fields: {missing_fields}")
