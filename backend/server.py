@@ -1468,18 +1468,20 @@ async def get_gps_locations(
     current_user: User = Depends(get_current_user)
 ):
     """Get GPS locations for all objects or a specific IMEI"""
-    if not GPS_API_KEY:
-        raise HTTPException(status_code=500, detail="GPS API key not configured")
+    gps_api_key, gps_api_url = await get_locateur_gps_config(current_user)
+    
+    if not gps_api_key:
+        raise HTTPException(status_code=400, detail="Clé API GPS non configurée")
     
     imei_param = imei if imei else "*"
     
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
-                f"{GPS_API_URL}",
+                gps_api_url,
                 params={
                     "api": "user",
-                    "key": GPS_API_KEY,
+                    "key": gps_api_key,
                     "cmd": f"OBJECT_GET_LOCATIONS,{imei_param}"
                 }
             )
@@ -1504,10 +1506,10 @@ async def get_gps_locations(
             return locations
     except httpx.RequestError as e:
         logging.error(f"GPS API request error: {e}")
-        raise HTTPException(status_code=502, detail=f"GPS API connection error: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Erreur de connexion à l'API GPS: {str(e)}")
     except Exception as e:
         logging.error(f"GPS API error: {e}")
-        raise HTTPException(status_code=500, detail=f"GPS API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur API GPS: {str(e)}")
 
 @api_router.get("/gps/route/{imei}")
 async def get_gps_route(
@@ -1518,16 +1520,18 @@ async def get_gps_route(
     current_user: User = Depends(get_current_user)
 ):
     """Get route history for a specific object"""
-    if not GPS_API_KEY:
-        raise HTTPException(status_code=500, detail="GPS API key not configured")
+    gps_api_key, gps_api_url = await get_locateur_gps_config(current_user)
+    
+    if not gps_api_key:
+        raise HTTPException(status_code=400, detail="Clé API GPS non configurée")
     
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.get(
-                f"{GPS_API_URL}",
+                gps_api_url,
                 params={
                     "api": "user",
-                    "key": GPS_API_KEY,
+                    "key": gps_api_key,
                     "cmd": f"OBJECT_GET_ROUTE,{imei},{date_from},{date_to},{stop_duration}"
                 }
             )
