@@ -58,7 +58,7 @@ const FleetPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Prepare data - only include insurance_expiry if it has a value
+      // Prepare data - only include dates if they have a value
       const submitData = {
         ...formData,
         daily_rate: parseFloat(formData.daily_rate) || 0,
@@ -70,6 +70,18 @@ const FleetPage = () => {
         submitData.insurance_expiry = new Date(submitData.insurance_expiry).toISOString();
       } else {
         delete submitData.insurance_expiry;
+      }
+      
+      // Handle optional technical_control_expiry
+      if (submitData.technical_control_expiry && submitData.technical_control_expiry.trim() !== '') {
+        submitData.technical_control_expiry = new Date(submitData.technical_control_expiry).toISOString();
+      } else {
+        delete submitData.technical_control_expiry;
+      }
+      
+      // Handle optional gps_imei
+      if (!submitData.gps_imei || submitData.gps_imei.trim() === '') {
+        delete submitData.gps_imei;
       }
       
       if (editingVehicle) {
@@ -94,7 +106,10 @@ const FleetPage = () => {
       registration_number: vehicle.registration_number, type: vehicle.type, make: vehicle.make,
       model: vehicle.model, year: vehicle.year, chassis_number: vehicle.chassis_number,
       color: vehicle.color, insurance_number: vehicle.insurance_number || '',
-      insurance_expiry: vehicle.insurance_expiry || '', daily_rate: vehicle.daily_rate,
+      insurance_expiry: vehicle.insurance_expiry ? vehicle.insurance_expiry.split('T')[0] : '', 
+      technical_control_expiry: vehicle.technical_control_expiry ? vehicle.technical_control_expiry.split('T')[0] : '',
+      gps_imei: vehicle.gps_imei || '',
+      daily_rate: vehicle.daily_rate,
       gps_device_id: vehicle.gps_device_id || ''
     });
     setShowDialog(true);
