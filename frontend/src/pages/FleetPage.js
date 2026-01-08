@@ -133,7 +133,8 @@ const FleetPage = () => {
     setEditingVehicle(null);
     setFormData({
       registration_number: '', type: 'sedan', make: '', model: '', year: new Date().getFullYear(),
-      chassis_number: '', color: '', insurance_number: '', insurance_expiry: '', daily_rate: 0, gps_device_id: ''
+      chassis_number: '', color: '', insurance_number: '', insurance_expiry: '', 
+      technical_control_expiry: '', gps_imei: '', daily_rate: 0, gps_device_id: ''
     });
   };
   
