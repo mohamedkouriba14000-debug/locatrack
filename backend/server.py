@@ -61,6 +61,12 @@ class User(BaseModel):
     company_name: Optional[str] = None  # For locateur
     tenant_id: Optional[str] = None  # Links employee to their locateur
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    # Subscription fields
+    subscription_type: Optional[str] = "trial"  # trial, annual, lifetime
+    subscription_start: Optional[datetime] = None
+    subscription_end: Optional[datetime] = None
+    is_suspended: Optional[bool] = False
+    suspension_reason: Optional[str] = None
 
 class UserCreate(BaseModel):
     email: EmailStr
