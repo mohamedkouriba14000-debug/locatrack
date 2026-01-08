@@ -14,6 +14,7 @@ import logging
 from pathlib import Path
 import uuid
 import shutil
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -22,6 +23,10 @@ load_dotenv(ROOT_DIR / '.env')
 UPLOADS_DIR = ROOT_DIR / 'uploads'
 UPLOADS_DIR.mkdir(exist_ok=True)
 (UPLOADS_DIR / 'licenses').mkdir(exist_ok=True)
+
+# GPS API Configuration
+GPS_API_URL = os.environ.get('GPS_API_URL', 'https://tracking.gps-14.net/api/api.php')
+GPS_API_KEY = os.environ.get('GPS_API_KEY', '')
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
