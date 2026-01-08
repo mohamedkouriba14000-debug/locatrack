@@ -139,6 +139,8 @@ class VehicleCreate(BaseModel):
     color: str
     insurance_number: Optional[str] = None
     insurance_expiry: Optional[datetime] = None
+    technical_control_expiry: Optional[datetime] = None
+    gps_imei: Optional[str] = None
     daily_rate: float
     gps_device_id: Optional[str] = None
 
