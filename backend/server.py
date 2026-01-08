@@ -378,19 +378,28 @@ async def register_locateur(locateur_register: LocateurRegister):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Create locateur user
+    # Create locateur user with 15 days trial
+    trial_start = datetime.now(timezone.utc)
+    trial_end = trial_start + timedelta(days=15)
+    
     user_obj = User(
         email=locateur_register.email,
         full_name=locateur_register.full_name,
         role=UserRole.LOCATEUR,
         phone=locateur_register.phone,
         company_name=locateur_register.company_name,
-        tenant_id=None  # Locateur doesn't have tenant_id, they ARE the tenant
+        tenant_id=None,  # Locateur doesn't have tenant_id, they ARE the tenant
+        subscription_type="trial",
+        subscription_start=trial_start,
+        subscription_end=trial_end,
+        is_suspended=False
     )
     
     doc = user_obj.model_dump()
     doc['password'] = hash_password(locateur_register.password)
     doc['created_at'] = doc['created_at'].isoformat()
+    doc['subscription_start'] = doc['subscription_start'].isoformat() if doc['subscription_start'] else None
+    doc['subscription_end'] = doc['subscription_end'].isoformat() if doc['subscription_end'] else None
     
     await db.users.insert_one(doc)
     
