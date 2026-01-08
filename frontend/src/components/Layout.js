@@ -90,6 +90,7 @@ const Layout = ({ children }) => {
         { icon: Wrench, label: t('maintenance'), path: '/maintenance' },
         { icon: AlertTriangle, label: t('infractions'), path: '/infractions' },
         { icon: BarChart3, label: t('reports'), path: '/reports' },
+        { icon: Settings, label: language === 'fr' ? 'Paramètres' : 'الإعدادات', path: '/settings' },
       ];
     }
     
