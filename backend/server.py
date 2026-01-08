@@ -119,6 +119,10 @@ class Vehicle(BaseModel):
     color: str
     insurance_number: Optional[str] = None
     insurance_expiry: Optional[datetime] = None
+    # Technical control (Contrôle technique)
+    technical_control_expiry: Optional[datetime] = None
+    # GPS Tracker
+    gps_imei: Optional[str] = None  # IMEI du traceur GPS
     status: str = "available"  # available, rented, maintenance, unavailable
     daily_rate: float
     gps_device_id: Optional[str] = None
