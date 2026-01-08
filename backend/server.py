@@ -1389,21 +1389,38 @@ async def get_admin_stats(
 
 # ==================== GPS TRACKING API ====================
 
+async def get_locateur_gps_config(current_user: User):
+    """Get GPS API configuration for the current user's locateur"""
+    if current_user.role == UserRole.LOCATEUR:
+        locateur_id = current_user.id
+    elif current_user.role == UserRole.EMPLOYEE:
+        locateur_id = current_user.tenant_id
+    else:
+        return None, None
+    
+    locateur = await db.users.find_one({"id": locateur_id}, {"_id": 0, "gps_api_key": 1, "gps_api_url": 1})
+    if not locateur or not locateur.get("gps_api_key"):
+        return None, None
+    
+    return locateur.get("gps_api_key"), locateur.get("gps_api_url", "https://tracking.gps-14.net/api/api.php")
+
 @api_router.get("/gps/objects")
 async def get_gps_objects(
     current_user: User = Depends(get_current_user)
 ):
-    """Get all GPS tracked objects from the external GPS API"""
-    if not GPS_API_KEY:
-        raise HTTPException(status_code=500, detail="GPS API key not configured")
+    """Get all GPS tracked objects from the external GPS API using locateur's API key"""
+    gps_api_key, gps_api_url = await get_locateur_gps_config(current_user)
+    
+    if not gps_api_key:
+        raise HTTPException(status_code=400, detail="Clé API GPS non configurée. Veuillez configurer votre clé API GPS dans les paramètres.")
     
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
-                f"{GPS_API_URL}",
+                gps_api_url,
                 params={
                     "api": "user",
-                    "key": GPS_API_KEY,
+                    "key": gps_api_key,
                     "cmd": "USER_GET_OBJECTS"
                 }
             )
@@ -1440,10 +1457,10 @@ async def get_gps_objects(
             return objects
     except httpx.RequestError as e:
         logging.error(f"GPS API request error: {e}")
-        raise HTTPException(status_code=502, detail=f"GPS API connection error: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Erreur de connexion à l'API GPS: {str(e)}")
     except Exception as e:
         logging.error(f"GPS API error: {e}")
-        raise HTTPException(status_code=500, detail=f"GPS API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur API GPS: {str(e)}")
 
 @api_router.get("/gps/locations")
 async def get_gps_locations(
