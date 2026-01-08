@@ -1333,6 +1333,169 @@ async def get_admin_stats(
         "pending_infractions_platform": pending_infractions
     }
 
+# ==================== GPS TRACKING API ====================
+
+@api_router.get("/gps/objects")
+async def get_gps_objects(
+    current_user: User = Depends(get_current_user)
+):
+    """Get all GPS tracked objects from the external GPS API"""
+    if not GPS_API_KEY:
+        raise HTTPException(status_code=500, detail="GPS API key not configured")
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{GPS_API_URL}",
+                params={
+                    "api": "user",
+                    "key": GPS_API_KEY,
+                    "cmd": "USER_GET_OBJECTS"
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            # Transform data for frontend
+            objects = []
+            for obj in data:
+                objects.append({
+                    "imei": obj.get("imei"),
+                    "name": obj.get("name"),
+                    "model": obj.get("model"),
+                    "plate_number": obj.get("plate_number"),
+                    "lat": float(obj.get("lat", 0)),
+                    "lng": float(obj.get("lng", 0)),
+                    "altitude": float(obj.get("altitude", 0)),
+                    "angle": float(obj.get("angle", 0)),
+                    "speed": float(obj.get("speed", 0)),
+                    "odometer": float(obj.get("odometer", 0)),
+                    "active": obj.get("active") == "true",
+                    "loc_valid": obj.get("loc_valid") == "1",
+                    "dt_tracker": obj.get("dt_tracker"),
+                    "dt_server": obj.get("dt_server"),
+                    "dt_last_stop": obj.get("dt_last_stop"),
+                    "dt_last_move": obj.get("dt_last_move"),
+                    "params": obj.get("params", {}),
+                    "device": obj.get("device"),
+                    "sim_number": obj.get("sim_number"),
+                    "vin": obj.get("vin"),
+                    "engine_hours": float(obj.get("engine_hours", 0)),
+                })
+            
+            return objects
+    except httpx.RequestError as e:
+        logging.error(f"GPS API request error: {e}")
+        raise HTTPException(status_code=502, detail=f"GPS API connection error: {str(e)}")
+    except Exception as e:
+        logging.error(f"GPS API error: {e}")
+        raise HTTPException(status_code=500, detail=f"GPS API error: {str(e)}")
+
+@api_router.get("/gps/locations")
+async def get_gps_locations(
+    imei: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get GPS locations for all objects or a specific IMEI"""
+    if not GPS_API_KEY:
+        raise HTTPException(status_code=500, detail="GPS API key not configured")
+    
+    imei_param = imei if imei else "*"
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{GPS_API_URL}",
+                params={
+                    "api": "user",
+                    "key": GPS_API_KEY,
+                    "cmd": f"OBJECT_GET_LOCATIONS,{imei_param}"
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            locations = []
+            for obj in data:
+                locations.append({
+                    "imei": obj.get("imei"),
+                    "name": obj.get("name"),
+                    "lat": float(obj.get("lat", 0)),
+                    "lng": float(obj.get("lng", 0)),
+                    "speed": float(obj.get("speed", 0)),
+                    "angle": float(obj.get("angle", 0)),
+                    "altitude": float(obj.get("altitude", 0)),
+                    "dt_tracker": obj.get("dt_tracker"),
+                    "params": obj.get("params", {}),
+                    "loc_valid": obj.get("loc_valid") == "1",
+                })
+            
+            return locations
+    except httpx.RequestError as e:
+        logging.error(f"GPS API request error: {e}")
+        raise HTTPException(status_code=502, detail=f"GPS API connection error: {str(e)}")
+    except Exception as e:
+        logging.error(f"GPS API error: {e}")
+        raise HTTPException(status_code=500, detail=f"GPS API error: {str(e)}")
+
+@api_router.get("/gps/route/{imei}")
+async def get_gps_route(
+    imei: str,
+    date_from: str,
+    date_to: str,
+    stop_duration: int = 5,
+    current_user: User = Depends(get_current_user)
+):
+    """Get route history for a specific object"""
+    if not GPS_API_KEY:
+        raise HTTPException(status_code=500, detail="GPS API key not configured")
+    
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.get(
+                f"{GPS_API_URL}",
+                params={
+                    "api": "user",
+                    "key": GPS_API_KEY,
+                    "cmd": f"OBJECT_GET_ROUTE,{imei},{date_from},{date_to},{stop_duration}"
+                }
+            )
+            response.raise_for_status()
+            return response.json()
+    except httpx.RequestError as e:
+        logging.error(f"GPS API request error: {e}")
+        raise HTTPException(status_code=502, detail=f"GPS API connection error: {str(e)}")
+    except Exception as e:
+        logging.error(f"GPS API error: {e}")
+        raise HTTPException(status_code=500, detail=f"GPS API error: {str(e)}")
+
+@api_router.get("/gps/events")
+async def get_gps_events(
+    current_user: User = Depends(get_current_user)
+):
+    """Get last 30 minutes events for all objects"""
+    if not GPS_API_KEY:
+        raise HTTPException(status_code=500, detail="GPS API key not configured")
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{GPS_API_URL}",
+                params={
+                    "api": "user",
+                    "key": GPS_API_KEY,
+                    "cmd": "OBJECT_GET_LAST_EVENTS_30M"
+                }
+            )
+            response.raise_for_status()
+            return response.json()
+    except httpx.RequestError as e:
+        logging.error(f"GPS API request error: {e}")
+        raise HTTPException(status_code=502, detail=f"GPS API connection error: {str(e)}")
+    except Exception as e:
+        logging.error(f"GPS API error: {e}")
+        raise HTTPException(status_code=500, detail=f"GPS API error: {str(e)}")
+
 # ==================== MESSAGING ROUTES ====================
 
 @api_router.get("/messages/conversations")
