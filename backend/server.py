@@ -72,6 +72,9 @@ class User(BaseModel):
     subscription_end: Optional[datetime] = None
     is_suspended: Optional[bool] = False
     suspension_reason: Optional[str] = None
+    # GPS API Configuration (for locateur)
+    gps_api_key: Optional[str] = None
+    gps_api_url: Optional[str] = "https://tracking.gps-14.net/api/api.php"
 
 class UserCreate(BaseModel):
     email: EmailStr
