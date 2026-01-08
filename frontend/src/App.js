@@ -65,6 +65,7 @@ const AppRoutes = () => {
       <Route path="/maintenance" element={<ProtectedRoute allowedRoles={['locateur', 'employee']}><MaintenancePage /></ProtectedRoute>} />
       <Route path="/infractions" element={<ProtectedRoute allowedRoles={['locateur', 'employee']}><InfractionsPage /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute allowedRoles={['locateur']}><ReportsPage /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute allowedRoles={['locateur']}><SettingsPage /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminPage /></ProtectedRoute>} />
       <Route path="/messages" element={<ProtectedRoute allowedRoles={['locateur', 'employee']}><MessagesPage /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
