@@ -1252,6 +1252,74 @@ class VehicleTrackAPITester:
             self.log_test("SuperAdmin enhanced stats endpoint", False, 
                         f"Request failed: {response}")
 
+    def test_gps_tracking_backend_support(self):
+        """Test GPS tracking backend support (P0 Priority)"""
+        print("\n🛰️ Testing GPS Tracking Backend Support (P0)...")
+        
+        # Test 1: Create vehicle with GPS device ID
+        gps_vehicle = {
+            "registration_number": f"GPS-{datetime.now().strftime('%H%M%S')}",
+            "type": "sedan",
+            "make": "Toyota",
+            "model": "Camry GPS",
+            "year": 2024,
+            "chassis_number": f"GPS_CHASSIS_{datetime.now().strftime('%H%M%S')}",
+            "color": "Blue",
+            "daily_rate": 5000.0,
+            "gps_device_id": "GPS_DEVICE_001"
+        }
+        
+        create_success, create_response = self.make_request(
+            'POST', 'vehicles', gps_vehicle, 
+            token=self.tokens.get('locateur'), expected_status=200
+        )
+        
+        if create_success and 'id' in create_response:
+            vehicle_id = create_response['id']
+            self.test_data['gps_vehicle_id'] = vehicle_id
+            self.log_test("Create vehicle with GPS device ID", True, 
+                        f"GPS vehicle created with ID: {vehicle_id}")
+            
+            # Verify GPS device ID is stored
+            if create_response.get('gps_device_id') == "GPS_DEVICE_001":
+                self.log_test("GPS device ID storage", True,
+                            "GPS device ID stored correctly")
+            else:
+                self.log_test("GPS device ID storage", False,
+                            "GPS device ID not stored correctly")
+        else:
+            self.log_test("Create vehicle with GPS device ID", False, 
+                        f"Failed: {create_response}")
+        
+        # Test 2: GET vehicles for GPS tracking (should return vehicles with GPS data)
+        vehicles_success, vehicles_response = self.make_request(
+            'GET', 'vehicles', token=self.tokens.get('locateur')
+        )
+        
+        if vehicles_success and isinstance(vehicles_response, list):
+            self.log_test("GET vehicles for GPS tracking", True, 
+                        f"Retrieved {len(vehicles_response)} vehicles for GPS tracking")
+            
+            # Check if any vehicles have GPS device IDs
+            gps_vehicles = [v for v in vehicles_response if v.get('gps_device_id')]
+            self.log_test("Vehicles with GPS devices", len(gps_vehicles) > 0,
+                        f"Found {len(gps_vehicles)} vehicles with GPS devices")
+        else:
+            self.log_test("GET vehicles for GPS tracking", False, 
+                        f"Failed: {vehicles_response}")
+        
+        # Test 3: Employee access to GPS tracking data
+        emp_vehicles_success, emp_vehicles_response = self.make_request(
+            'GET', 'vehicles', token=self.tokens.get('employee')
+        )
+        
+        if emp_vehicles_success and isinstance(emp_vehicles_response, list):
+            self.log_test("Employee access to GPS vehicles", True, 
+                        f"Employee can access {len(emp_vehicles_response)} vehicles for GPS tracking")
+        else:
+            self.log_test("Employee access to GPS vehicles", False, 
+                        f"Failed: {emp_vehicles_response}")
+
     def test_quick_sanity_checks(self):
         """Test quick sanity checks for basic endpoints (P0 Priority)"""
         print("\n✅ Testing Quick Sanity Checks (P0)...")
