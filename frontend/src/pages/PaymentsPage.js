@@ -138,16 +138,16 @@ const PaymentsPage = () => {
       <div>
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-heading font-bold text-4xl uppercase text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">{t('payments')}</h1>
-          <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          <Dialog open={showDialog} onOpenChange={(open) => { setShowDialog(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg">
+              <Button className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg" data-testid="add-payment-btn">
                 <Plus size={20} className="me-2" /> {language === 'fr' ? 'Enregistrer Paiement' : 'تسجيل دفعة'}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md bg-white border-2 border-slate-200">
               <DialogHeader>
-                <DialogTitle className="text-green-600 font-heading text-2xl">{language === 'fr' ? 'Nouveau Paiement' : 'دفعة جديدة'}</DialogTitle>
-                <DialogDescription className="text-slate-600">{language === 'fr' ? 'Enregistrer un nouveau paiement' : 'تسجيل دفعة جديدة'}</DialogDescription>
+                <DialogTitle className="text-green-600 font-heading text-2xl">{editingPayment ? (language === 'fr' ? 'Modifier Paiement' : 'تعديل دفعة') : (language === 'fr' ? 'Nouveau Paiement' : 'دفعة جديدة')}</DialogTitle>
+                <DialogDescription className="text-slate-600">{editingPayment ? (language === 'fr' ? 'Modifier les détails du paiement' : 'تعديل تفاصيل الدفعة') : (language === 'fr' ? 'Enregistrer un nouveau paiement' : 'تسجيل دفعة جديدة')}</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -182,8 +182,8 @@ const PaymentsPage = () => {
                   <Input value={formData.reference} onChange={(e) => setFormData({...formData, reference: e.target.value})} className="bg-white border-2 border-slate-300 focus:border-green-500" placeholder="REF-123456" />
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setShowDialog(false)} className="border-2 border-slate-300">{t('cancel')}</Button>
-                  <Button type="submit" className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white">{language === 'fr' ? 'Enregistrer' : 'تسجيل'}</Button>
+                  <Button type="button" variant="outline" onClick={() => { setShowDialog(false); resetForm(); }} className="border-2 border-slate-300">{t('cancel')}</Button>
+                  <Button type="submit" className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white" data-testid="submit-payment-btn">{editingPayment ? (language === 'fr' ? 'Mettre à jour' : 'تحديث') : (language === 'fr' ? 'Enregistrer' : 'تسجيل')}</Button>
                 </div>
               </form>
             </DialogContent>
@@ -212,15 +212,25 @@ const PaymentsPage = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPayments.map((payment) => (
-            <Card key={payment.id} className="bg-white border-2 border-slate-200 card-hover shadow-lg">
+            <Card key={payment.id} className="bg-white border-2 border-slate-200 card-hover shadow-lg" data-testid={`payment-card-${payment.id}`}>
               <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full">
-                    <CreditCard size={24} className="text-white" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full">
+                      <CreditCard size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-bold text-slate-800">{payment.amount.toLocaleString()} DZD</CardTitle>
+                      <p className="text-sm text-slate-500">{getMethodIcon(payment.method)}</p>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-lg font-bold text-slate-800">{payment.amount.toLocaleString()} DZD</CardTitle>
-                    <p className="text-sm text-slate-500">{getMethodIcon(payment.method)}</p>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(payment)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50" data-testid={`edit-payment-${payment.id}`}>
+                      <Edit2 size={16} />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(payment.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50" data-testid={`delete-payment-${payment.id}`}>
+                      <Trash2 size={16} />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
