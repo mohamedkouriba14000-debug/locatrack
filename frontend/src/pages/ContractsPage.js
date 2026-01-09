@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Layout from '../components/Layout';
@@ -9,7 +10,7 @@ import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Plus, FileText, Edit3, Search } from 'lucide-react';
+import { Plus, FileText, Edit3, Search, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatApiError } from '../utils/errorHandler';
 import SignatureCanvas from 'react-signature-canvas';
@@ -19,6 +20,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const ContractsPage = () => {
   const { getAuthHeaders } = useAuth();
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const [contracts, setContracts] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [clients, setClients] = useState([]);
