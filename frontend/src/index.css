@@ -4,6 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide Emergent badge */
+#emergent-badge,
+a[href*="emergent.sh"],
+div[id*="emergent"],
+[class*="emergent-badge"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
 body {
     margin: 0;
     font-family: 'Inter', sans-serif;
