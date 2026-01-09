@@ -13,6 +13,7 @@ import ReservationsPage from './pages/ReservationsPage';
 import GPSTrackingPage from './pages/GPSTrackingPage';
 import SettingsPage from './pages/SettingsPage';
 import ContractsPage from './pages/ContractsPage';
+import ContractPrintPage from './pages/ContractPrintPage';
 import PaymentsPage from './pages/PaymentsPage';
 import MaintenancePage from './pages/MaintenancePage';
 import InfractionsPage from './pages/InfractionsPage';
