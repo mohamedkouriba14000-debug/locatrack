@@ -933,6 +933,42 @@ async def create_payment(
     await db.payments.insert_one(doc)
     return payment_obj
 
+@api_router.put("/payments/{payment_id}", response_model=Payment)
+async def update_payment(
+    payment_id: str,
+    payment_update: PaymentCreate,
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
+):
+    tenant_id = get_tenant_id(current_user)
+    existing = await db.payments.find_one({"id": payment_id, "tenant_id": tenant_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    
+    update_data = payment_update.model_dump()
+    update_data['payment_date'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.payments.update_one(
+        {"id": payment_id},
+        {"$set": update_data}
+    )
+    
+    updated = await db.payments.find_one({"id": payment_id}, {"_id": 0})
+    for date_field in ['created_at', 'payment_date']:
+        if updated.get(date_field) and isinstance(updated[date_field], str):
+            updated[date_field] = datetime.fromisoformat(updated[date_field])
+    return Payment(**updated)
+
+@api_router.delete("/payments/{payment_id}")
+async def delete_payment(
+    payment_id: str,
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
+):
+    tenant_id = get_tenant_id(current_user)
+    result = await db.payments.delete_one({"id": payment_id, "tenant_id": tenant_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    return {"message": "Payment deleted successfully"}
+
 # ==================== MAINTENANCE ROUTES ====================
 
 @api_router.get("/maintenance", response_model=List[Maintenance])
@@ -1833,17 +1869,31 @@ async def get_unread_count(
 async def get_available_users_for_chat(
     current_user: User = Depends(get_current_user)
 ):
-    """Get users available for chat (admins and employees can chat with each other)"""
+    """Get users available for chat within the same tenant"""
     # SuperAdmin can chat with everyone
-    # Admin can chat with superadmin and employees
-    # Employee can chat with superadmin and admin
-    
     if current_user.role == UserRole.SUPERADMIN:
         query = {"id": {"$ne": current_user.id}}
-    elif current_user.role == UserRole.ADMIN:
-        query = {"id": {"$ne": current_user.id}, "role": {"$in": ["superadmin", "employee", "admin"]}}
-    else:  # Employee
-        query = {"id": {"$ne": current_user.id}, "role": {"$in": ["superadmin", "admin"]}}
+    # Locateur can chat with their employees
+    elif current_user.role == UserRole.LOCATEUR:
+        query = {
+            "id": {"$ne": current_user.id},
+            "$or": [
+                {"tenant_id": current_user.id},  # Their employees
+                {"id": current_user.id}  # Themselves (shouldn't happen due to $ne)
+            ]
+        }
+    # Employee can chat with their locateur and other employees of same tenant
+    else:
+        tenant_id = current_user.tenant_id
+        if not tenant_id:
+            return []
+        query = {
+            "id": {"$ne": current_user.id},
+            "$or": [
+                {"id": tenant_id},  # Their locateur
+                {"tenant_id": tenant_id}  # Other employees
+            ]
+        }
     
     users = await db.users.find(query, {"_id": 0, "password": 0}).to_list(100)
     
