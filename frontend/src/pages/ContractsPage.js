@@ -236,6 +236,13 @@ const ContractsPage = () => {
                     <Edit3 size={16} className="me-2" /> {language === 'fr' ? 'Signer Contrat' : 'توقيع العقد'}
                   </Button>
                 )}
+                <Button 
+                  onClick={() => navigate(`/contracts/${contract.id}/print`)} 
+                  variant="outline" 
+                  className="w-full mt-2 border-2 border-cyan-300 text-cyan-600 hover:bg-cyan-50"
+                >
+                  <Printer size={16} className="me-2" /> {language === 'fr' ? 'Imprimer Contrat' : 'طباعة العقد'}
+                </Button>
               </CardContent>
             </Card>
           ))}
