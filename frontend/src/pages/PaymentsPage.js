@@ -9,7 +9,7 @@ import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Plus, CreditCard, CheckCircle, Clock, Search } from 'lucide-react';
+import { Plus, CreditCard, CheckCircle, Clock, Search, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatApiError } from '../utils/errorHandler';
 
@@ -29,6 +29,7 @@ const PaymentsPage = () => {
     method: 'cash',
     reference: ''
   });
+  const [editingPayment, setEditingPayment] = useState(null);
   
   useEffect(() => { fetchData(); }, []);
   
@@ -55,10 +56,37 @@ const PaymentsPage = () => {
         amount: parseFloat(formData.amount)
       };
       
-      await axios.post(`${API}/payments`, paymentData, { headers: getAuthHeaders() });
-      toast.success(language === 'fr' ? 'Paiement enregistré' : 'تم تسجيل الدفع');
+      if (editingPayment) {
+        await axios.put(`${API}/payments/${editingPayment.id}`, paymentData, { headers: getAuthHeaders() });
+        toast.success(language === 'fr' ? 'Paiement mis à jour' : 'تم تحديث الدفع');
+      } else {
+        await axios.post(`${API}/payments`, paymentData, { headers: getAuthHeaders() });
+        toast.success(language === 'fr' ? 'Paiement enregistré' : 'تم تسجيل الدفع');
+      }
       setShowDialog(false);
       resetForm();
+      fetchData();
+    } catch (error) {
+      toast.error(formatApiError(error));
+    }
+  };
+  
+  const handleEdit = (payment) => {
+    setEditingPayment(payment);
+    setFormData({
+      contract_id: payment.contract_id,
+      amount: payment.amount.toString(),
+      method: payment.method,
+      reference: payment.reference || ''
+    });
+    setShowDialog(true);
+  };
+  
+  const handleDelete = async (paymentId) => {
+    if (!window.confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer ce paiement ?' : 'هل أنت متأكد من حذف هذا الدفع؟')) return;
+    try {
+      await axios.delete(`${API}/payments/${paymentId}`, { headers: getAuthHeaders() });
+      toast.success(language === 'fr' ? 'Paiement supprimé' : 'تم حذف الدفع');
       fetchData();
     } catch (error) {
       toast.error(formatApiError(error));
@@ -72,6 +100,7 @@ const PaymentsPage = () => {
       method: 'cash',
       reference: ''
     });
+    setEditingPayment(null);
   };
   
   const handleContractSelect = (contractId) => {
