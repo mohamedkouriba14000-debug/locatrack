@@ -794,6 +794,23 @@ async def create_contract(
     await db.contracts.insert_one(doc)
     return contract_obj
 
+@api_router.get("/contracts/{contract_id}")
+async def get_contract(
+    contract_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get a single contract by ID"""
+    tenant_id = get_tenant_id(current_user)
+    contract = await db.contracts.find_one({"id": contract_id, "tenant_id": tenant_id}, {"_id": 0})
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    
+    for date_field in ['created_at', 'start_date', 'end_date', 'signed_at']:
+        if contract.get(date_field) and isinstance(contract[date_field], str):
+            contract[date_field] = datetime.fromisoformat(contract[date_field])
+    
+    return contract
+
 @api_router.post("/contracts/{contract_id}/sign", response_model=Contract)
 async def sign_contract(
     contract_id: str,
