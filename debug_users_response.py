@@ -8,7 +8,7 @@ import json
 
 # Login as superadmin
 login_response = requests.post(
-    "https://carsaas-2.preview.emergentagent.com/api/auth/login",
+    "https://rentsaas.preview.emergentagent.com/api/auth/login",
     json={'email': 'superadmin@locatrack.dz', 'password': 'superadmin123'}
 )
 
@@ -17,7 +17,7 @@ if login_response.status_code == 200:
     
     # Get all users
     users_response = requests.get(
-        "https://carsaas-2.preview.emergentagent.com/api/admin/all-users",
+        "https://rentsaas.preview.emergentagent.com/api/admin/all-users",
         headers={'Authorization': f'Bearer {token}'}
     )
     
