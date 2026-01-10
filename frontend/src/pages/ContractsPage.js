@@ -62,13 +62,26 @@ const ContractsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Calculate number of days
+      const startDate = new Date(formData.start_date);
+      const endDate = new Date(formData.end_date);
+      const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+      
+      // Calculate total amount
+      const dailyRate = parseFloat(formData.daily_rate) || 0;
+      const insuranceFee = parseFloat(formData.insurance_fee) || 0;
+      const additionalFees = parseFloat(formData.additional_fees) || 0;
+      const totalAmount = (dailyRate * days) + insuranceFee + additionalFees;
+      
       const contractData = {
-        ...formData,
-        start_date: new Date(formData.start_date).toISOString(),
-        end_date: new Date(formData.end_date).toISOString(),
-        daily_rate: parseFloat(formData.daily_rate),
-        insurance_fee: parseFloat(formData.insurance_fee || 0),
-        additional_fees: parseFloat(formData.additional_fees || 0)
+        client_id: formData.client_id,
+        vehicle_id: formData.vehicle_id,
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        daily_rate: dailyRate,
+        total_amount: totalAmount,
+        insurance_fee: insuranceFee,
+        additional_fees: additionalFees
       };
       
       await axios.post(`${API}/contracts`, contractData, { headers: getAuthHeaders() });
@@ -154,7 +167,7 @@ const ContractsPage = () => {
                     <SelectTrigger className="bg-white border-2 border-slate-300"><SelectValue placeholder={language === 'fr' ? 'Sélectionner véhicule' : 'اختر مركبة'} /></SelectTrigger>
                     <SelectContent>
                       {vehicles.filter(v => v.status === 'available').map(vehicle => (
-                        <SelectItem key={vehicle.id} value={vehicle.id}>{vehicle.make} {vehicle.model} - {vehicle.registration_number}</SelectItem>
+                        <SelectItem key={vehicle.id} value={vehicle.id}>{vehicle.brand} {vehicle.model} - {vehicle.plate_number}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
