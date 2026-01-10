@@ -82,8 +82,9 @@ SelectLabel.displayName = SelectPrimitive.Label.displayName
 const SelectItem = React.forwardRef(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Item
     ref={ref}
+    style={{ backgroundColor: 'transparent' }}
     className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-blue-100 focus:text-blue-900 data-[highlighted]:bg-blue-100 data-[highlighted]:text-blue-900 data-[state=checked]:bg-blue-100 data-[state=checked]:text-blue-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none hover:bg-blue-100 hover:text-blue-900 focus:bg-blue-100 focus:text-blue-900 data-[highlighted]:bg-blue-100 data-[highlighted]:text-blue-900 data-[state=checked]:bg-blue-50 data-[state=checked]:text-blue-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&[data-highlighted]]:!bg-blue-100 [&[data-highlighted]]:!text-blue-900",
       className
     )}
     {...props}>
