@@ -1,7 +1,7 @@
 """
 Authentication routes for LocaTrack API
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from datetime import datetime, timezone, timedelta
 
 from config import db
@@ -47,7 +47,7 @@ async def register_locateur(locateur_register: LocateurRegister):
 
 
 @router.post("/login", response_model=Token)
-async def login(user_login: UserLogin):
+async def login(user_login: UserLogin, request: Request):
     user_doc = await db.users.find_one({"email": user_login.email})
     if not user_doc:
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -66,8 +66,26 @@ async def login(user_login: UserLogin):
             if subscription_end < datetime.now(timezone.utc):
                 raise HTTPException(status_code=403, detail="Votre abonnement a expiré. Veuillez contacter l'administrateur pour renouveler.")
     
+    # Get client IP
+    client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client else "unknown")
+    if client_ip and "," in client_ip:
+        client_ip = client_ip.split(",")[0].strip()
+    
+    # Update last login info
+    await db.users.update_one(
+        {"email": user_login.email},
+        {"$set": {
+            "last_ip": client_ip,
+            "last_login": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
     del user_doc['password']
     del user_doc['_id']
+    
+    # Update doc with latest info
+    user_doc['last_ip'] = client_ip
+    user_doc['last_login'] = datetime.now(timezone.utc)
     
     if isinstance(user_doc.get('created_at'), str):
         user_doc['created_at'] = datetime.fromisoformat(user_doc['created_at'])
