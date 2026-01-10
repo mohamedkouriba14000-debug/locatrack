@@ -321,7 +321,7 @@ const SuperAdminPage = () => {
                   <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Rôle' : 'الدور'}</th>
                   <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Nom / Entreprise' : 'الاسم / الشركة'}</th>
                   <th className="text-start p-4 font-semibold text-slate-700">Email</th>
-                  <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Créé le' : 'تاريخ الإنشاء'}</th>
+                  <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Dernière connexion' : 'آخر اتصال'}</th>
                   <th className="text-start p-4 font-semibold text-slate-700">{language === 'fr' ? 'Stats' : 'إحصائيات'}</th>
                   <th className="text-center p-4 font-semibold text-slate-700">{language === 'fr' ? 'Actions' : 'الإجراءات'}</th>
                 </tr>
@@ -350,14 +350,27 @@ const SuperAdminPage = () => {
                       {user.phone && <p className="text-xs text-slate-400">{user.phone}</p>}
                     </td>
                     <td className="p-4">
-                      <p className="text-sm text-slate-600">
-                        {user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : '-'}
-                      </p>
-                      {user.subscription_end && user.role === 'locateur' && (
-                        <p className="text-xs text-slate-400">
-                          {language === 'fr' ? 'Expire' : 'ينتهي'}: {new Date(user.subscription_end).toLocaleDateString('fr-FR')}
-                        </p>
-                      )}
+                      <div className="text-sm">
+                        {user.last_login ? (
+                          <>
+                            <p className="text-slate-600">
+                              {new Date(user.last_login).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                            {user.last_ip && (
+                              <p className="text-xs text-slate-400 font-mono">
+                                IP: {user.last_ip}
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-slate-400 text-xs">{language === 'fr' ? 'Jamais connecté' : 'لم يتصل أبداً'}</p>
+                        )}
+                        {user.subscription_end && user.role === 'locateur' && (
+                          <p className="text-xs text-orange-500 mt-1">
+                            {language === 'fr' ? 'Exp' : 'ينتهي'}: {new Date(user.subscription_end).toLocaleDateString('fr-FR')}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4">
                       {user.role === 'locateur' && (
