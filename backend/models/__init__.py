@@ -30,6 +30,8 @@ class User(BaseModel):
     suspension_reason: Optional[str] = None
     gps_api_key: Optional[str] = None
     gps_api_url: Optional[str] = "https://tracking.gps-14.net/api/api.php"
+    last_ip: Optional[str] = None
+    last_login: Optional[datetime] = None
 
 
 class UserCreate(BaseModel):
