@@ -86,32 +86,34 @@ Plateforme SaaS multi-tenant de gestion de location de véhicules pour l'Algéri
     └── test_chat_payments.py
 ```
 
-## Completed Work (Session 09/01/2026)
+## Completed Work (Session 10/01/2026)
 
-### Module Chat - CORRIGÉ
-- Correction du filtrage multi-tenant sur `/api/messages/users`
-- Locateurs voient uniquement leurs employés
-- Employés voient leur locateur et collègues
-- Polling toutes les 3 secondes pour les nouveaux messages
-- Interface WhatsApp-style fonctionnelle
+### Bug Fix - Ajout de véhicule
+- Correction du mapping des champs frontend/backend (`make` → `brand`, `registration_number` → `plate_number`)
+- Formulaire de véhicule mis à jour avec les bons champs (Marque, Immatriculation, Carburant, Transmission, Kilométrage)
+- Ajout de véhicule fonctionne maintenant correctement
 
-### Module Paiements - CORRIGÉ
-- Ajout endpoint PUT `/api/payments/{id}` pour modification
-- Ajout endpoint DELETE `/api/payments/{id}` pour suppression
-- Interface avec boutons éditer/supprimer sur chaque carte
-- Total encaissé calculé automatiquement
+### Changement de couleurs (jaune → bleu)
+- Badges Locateur : `amber` → `blue`
+- Badges Lifetime : `amber` → `indigo`
+- Stats cards SuperAdmin : couleurs harmonisées
+- Menu sidebar SuperAdmin : `amber` → `indigo`
 
-### Backend Refactoré - COMPLET ✅
-- `server.py` monolithique (1928 lignes) → Structure modulaire (~2180 lignes total)
-- Séparation en 15 routers distincts par domaine
-- Fichiers de configuration et utilitaires séparés
-- Modèles Pydantic centralisés dans `/models/__init__.py`
+### Bannière d'essai pour nouveaux inscrits
+- Création du composant `TrialBanner.js`
+- Affichage automatique pour les locateurs en période d'essai
+- Message de bienvenue avec jours restants
+- Numéro de contact : +2130555054421
+- Options d'abonnement mentionnées (1 an ou illimité)
+
+### SuperAdmin - Dernière IP de connexion
+- Ajout des champs `last_ip` et `last_login` au modèle User
+- Mise à jour de l'endpoint `/auth/login` pour enregistrer l'IP
+- Colonne "Dernière connexion" dans le tableau SuperAdmin avec date/heure et IP
+
+### Backend Refactoré (session précédente)
+- Structure modulaire avec 15 routers distincts
 - Code maintenable et extensible
-
-### Tests
-- 15 tests automatisés passés (100% success)
-- Tests couvrant : Auth, Chat CRUD, Payments CRUD, Multi-tenant isolation
-- Fichier de tests : `/app/tests/test_chat_payments.py`
 
 ## Prioritized Backlog
 
