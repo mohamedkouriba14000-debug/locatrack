@@ -148,7 +148,7 @@ const SuperAdminPage = () => {
     const badges = {
       trial: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 flex items-center gap-1"><Clock size={12} /> Essai ({user.days_remaining}j)</span>,
       annual: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700 flex items-center gap-1"><Crown size={12} /> Annuel</span>,
-      lifetime: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 flex items-center gap-1"><Sparkles size={12} /> Illimité</span>,
+      lifetime: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 flex items-center gap-1"><Sparkles size={12} /> Illimité</span>,
     };
     return badges[type] || badges.trial;
   };
@@ -156,7 +156,7 @@ const SuperAdminPage = () => {
   const getRoleBadge = (role) => {
     const badges = {
       superadmin: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700 flex items-center gap-1"><Shield size={12} /> SuperAdmin</span>,
-      locateur: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700 flex items-center gap-1"><Building2 size={12} /> Locateur</span>,
+      locateur: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 flex items-center gap-1"><Building2 size={12} /> Locateur</span>,
       employee: <span className="px-2 py-1 text-xs font-semibold rounded-full bg-cyan-100 text-cyan-700 flex items-center gap-1"><Users size={12} /> Employé</span>,
     };
     return badges[role] || role;
@@ -212,13 +212,13 @@ const SuperAdminPage = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-200">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
             <CardContent className="p-3">
               <div className="flex items-center gap-2">
-                <Building2 className="text-amber-500" size={24} />
+                <Building2 className="text-blue-500" size={24} />
                 <div>
-                  <p className="text-2xl font-bold text-amber-800">{stats.total_locateurs || 0}</p>
-                  <p className="text-xs text-amber-600">Locateurs</p>
+                  <p className="text-2xl font-bold text-blue-800">{stats.total_locateurs || 0}</p>
+                  <p className="text-xs text-blue-600">Locateurs</p>
                 </div>
               </div>
             </CardContent>
