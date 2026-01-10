@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
+import TrialBanner from './TrialBanner';
 import axios from 'axios';
 import {
   LayoutDashboard,
@@ -125,7 +126,7 @@ const Layout = ({ children }) => {
   
   const getRoleColor = (role) => {
     switch(role) {
-      case 'superadmin': return 'from-amber-50 to-amber-100 border-amber-200';
+      case 'superadmin': return 'from-indigo-50 to-indigo-100 border-indigo-200';
       case 'locateur': return 'from-emerald-50 to-emerald-100 border-emerald-200';
       default: return 'from-blue-50 to-blue-100 border-blue-200';
     }
@@ -133,7 +134,7 @@ const Layout = ({ children }) => {
   
   const getRoleTextColor = (role) => {
     switch(role) {
-      case 'superadmin': return 'text-amber-600';
+      case 'superadmin': return 'text-indigo-600';
       case 'locateur': return 'text-emerald-600';
       default: return 'text-blue-600';
     }
@@ -179,10 +180,10 @@ const Layout = ({ children }) => {
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
                       isActive
                         ? isSuperAdminLink 
-                          ? 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border-2 border-amber-300 shadow-md'
-                          : 'bg-gradient-to-r from-cyan-100 to-violet-100 text-cyan-700 border-2 border-cyan-300 shadow-md'
+                          ? 'bg-gradient-to-r from-indigo-100 to-indigo-200 text-indigo-700 border-2 border-indigo-300 shadow-md'
+                          : 'bg-gradient-to-r from-cyan-100 to-blue-100 text-cyan-700 border-2 border-cyan-300 shadow-md'
                         : isSuperAdminLink
-                          ? 'text-amber-600 hover:bg-amber-50 hover:text-amber-700'
+                          ? 'text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
@@ -234,6 +235,9 @@ const Layout = ({ children }) => {
       
       {/* Main Content */}
       <main className="ms-64 min-h-screen" data-testid="main-content">
+        {/* Trial Banner for locateurs */}
+        <TrialBanner />
+        
         {/* Top Bar */}
         <div className="glass-light border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-40">
           <div className="flex items-center gap-3">
