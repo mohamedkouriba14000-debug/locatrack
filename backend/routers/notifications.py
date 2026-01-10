@@ -34,6 +34,9 @@ async def get_notifications(
             expiry = vehicle['insurance_expiry']
             if isinstance(expiry, str):
                 expiry = datetime.fromisoformat(expiry.replace('Z', '+00:00'))
+            # Ensure expiry is timezone-aware
+            if expiry.tzinfo is None:
+                expiry = expiry.replace(tzinfo=timezone.utc)
             days_left = (expiry - now).days
             
             if days_left < 0:
@@ -64,6 +67,9 @@ async def get_notifications(
             expiry = vehicle['technical_inspection_expiry']
             if isinstance(expiry, str):
                 expiry = datetime.fromisoformat(expiry.replace('Z', '+00:00'))
+            # Ensure expiry is timezone-aware
+            if expiry.tzinfo is None:
+                expiry = expiry.replace(tzinfo=timezone.utc)
             days_left = (expiry - now).days
             
             if days_left < 0:
