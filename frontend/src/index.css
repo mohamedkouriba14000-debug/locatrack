@@ -47,12 +47,17 @@ div[id*="emergent"],
     background-color: #dbeafe !important;
 }
 
-/* Remove yellow/amber from all components */
-.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-yellow-50, .bg-yellow-100, .bg-yellow-200 {
-    background-color: rgb(219 234 254) !important;
+/* Remove yellow/amber from all components - force blue */
+.bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-yellow-50, .bg-yellow-100, .bg-yellow-200,
+[class*="amber"], [class*="yellow"] {
+    --tw-bg-opacity: 1 !important;
+    background-color: rgb(219 234 254 / var(--tw-bg-opacity)) !important;
 }
 .text-amber-600, .text-amber-700, .text-yellow-600, .text-yellow-700 {
     color: rgb(37 99 235) !important;
+}
+.border-amber-200, .border-amber-300, .border-yellow-200, .border-yellow-300 {
+    border-color: rgb(147 197 253) !important;
 }
 
 body {
