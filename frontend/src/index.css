@@ -20,9 +20,20 @@ div[id*="emergent"],
 [role="option"][data-highlighted],
 [role="option"][data-state="checked"],
 [role="option"]:focus,
-[role="option"]:hover {
+[role="option"]:hover,
+[data-radix-collection-item][data-highlighted],
+[data-radix-collection-item]:focus {
     background-color: rgb(219 234 254) !important;
     color: rgb(30 64 175) !important;
+    outline: none !important;
+}
+
+/* Override any yellow/amber background with blue */
+*[style*="background-color: rgb(254, 249, 195)"],
+*[style*="background: rgb(254, 249, 195)"],
+*[style*="background-color: rgb(254, 252, 232)"],
+*[style*="background: rgb(254, 252, 232)"] {
+    background-color: rgb(219 234 254) !important;
 }
 
 /* Remove yellow/amber from all components */
