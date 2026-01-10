@@ -15,13 +15,14 @@ div[id*="emergent"],
 }
 
 /* Force blue highlight on all select items - aggressive override */
-[data-radix-select-viewport] [data-highlighted],
+[data-highlighted=""],
+[data-radix-select-viewport] [data-highlighted=""],
 [data-radix-select-viewport] [data-state="checked"],
-[role="option"][data-highlighted],
+[role="option"][data-highlighted=""],
 [role="option"][data-state="checked"],
 [role="option"]:focus,
 [role="option"]:hover,
-[data-radix-collection-item][data-highlighted],
+[data-radix-collection-item][data-highlighted=""],
 [data-radix-collection-item]:focus,
 [cmdk-item][data-selected],
 [cmdk-item][aria-selected="true"] {
@@ -31,7 +32,7 @@ div[id*="emergent"],
 }
 
 /* Target Radix Select highlighted items specifically */
-[data-radix-select-content] [data-highlighted="true"],
+[data-radix-select-content] [data-highlighted=""],
 [data-radix-select-content] [data-highlighted] {
     background-color: #dbeafe !important;
     color: #1e40af !important;
