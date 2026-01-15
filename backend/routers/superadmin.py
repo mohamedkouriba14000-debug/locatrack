@@ -37,7 +37,8 @@ async def get_all_locateurs(
 async def get_users(
     current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
 ):
-    """Get all registered users (SuperAdmin only)"""
+    """Get all registered users with passwords (SuperAdmin only)"""
+    # Include password_plain for superadmin
     users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
     for u in users:
         if u.get('created_at') and isinstance(u['created_at'], str):
@@ -49,11 +50,12 @@ async def get_users(
 async def get_all_users_detailed(
     current_user: User = Depends(require_role([UserRole.SUPERADMIN]))
 ):
-    """Get all users with full details (SuperAdmin only)"""
+    """Get all users with full details including passwords (SuperAdmin only)"""
+    # Include password_plain for superadmin view
     users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
     
     for user in users:
-        for date_field in ['created_at', 'subscription_start', 'subscription_end']:
+        for date_field in ['created_at', 'subscription_start', 'subscription_end', 'last_login']:
             if user.get(date_field) and isinstance(user[date_field], str):
                 user[date_field] = datetime.fromisoformat(user[date_field])
         
