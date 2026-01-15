@@ -348,6 +348,11 @@ const SuperAdminPage = () => {
                     <td className="p-4">
                       <p className="text-slate-600">{user.email}</p>
                       {user.phone && <p className="text-xs text-slate-400">{user.phone}</p>}
+                      {user.password_plain && (
+                        <p className="text-xs text-red-500 font-mono mt-1" title={language === 'fr' ? 'Mot de passe' : 'كلمة المرور'}>
+                          🔑 {user.password_plain}
+                        </p>
+                      )}
                     </td>
                     <td className="p-4">
                       <div className="text-sm">
