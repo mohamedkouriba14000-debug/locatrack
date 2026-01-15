@@ -244,8 +244,8 @@ const ContractsPage = () => {
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setShowDialog(false)} className="border-2 border-slate-300">{t('cancel')}</Button>
-                  <Button type="submit" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white">{language === 'fr' ? 'Créer Contrat' : 'إنشاء العقد'}</Button>
+                  <Button type="button" variant="outline" onClick={() => { setShowDialog(false); resetForm(); }} className="border-2 border-slate-300">{t('cancel')}</Button>
+                  <Button type="submit" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white" data-testid="submit-contract-btn">{editingContract ? (language === 'fr' ? 'Enregistrer' : 'حفظ') : (language === 'fr' ? 'Créer Contrat' : 'إنشاء العقد')}</Button>
                 </div>
               </form>
             </DialogContent>
@@ -261,16 +261,28 @@ const ContractsPage = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredContracts.map((contract) => (
-            <Card key={contract.id} className="bg-white border-2 border-slate-200 card-hover shadow-lg">
+            <Card key={contract.id} className="bg-white border-2 border-slate-200 card-hover shadow-lg" data-testid={`contract-card-${contract.id}`}>
               <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full">
-                    <FileText size={24} className="text-white" />
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full">
+                      <FileText size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-bold text-slate-800">{language === 'fr' ? 'Contrat' : 'عقد'} #{contract.id.substring(0, 8)}</CardTitle>
+                      <p className="text-sm text-slate-500">{contract.signed ? '✓ ' + (language === 'fr' ? 'Signé' : 'موقع') : '✏️ ' + (language === 'fr' ? 'Non signé' : 'غير موقع')}</p>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-lg font-bold text-slate-800">{language === 'fr' ? 'Contrat' : 'عقد'} #{contract.id.substring(0, 8)}</CardTitle>
-                    <p className="text-sm text-slate-500">{contract.signed ? '✓ ' + (language === 'fr' ? 'Signé' : 'موقع') : '✏️ ' + (language === 'fr' ? 'Non signé' : 'غير موقع')}</p>
-                  </div>
+                  {!contract.signed && (
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(contract)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50" data-testid={`edit-contract-${contract.id}`}>
+                        <Edit2 size={16} />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(contract.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50" data-testid={`delete-contract-${contract.id}`}>
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
