@@ -98,3 +98,61 @@ async def sign_contract(
             contract_doc[date_field] = datetime.fromisoformat(contract_doc[date_field])
     
     return Contract(**contract_doc)
+
+
+@router.put("/{contract_id}", response_model=Contract)
+async def update_contract(
+    contract_id: str,
+    contract_update: ContractCreate,
+    current_user: User = Depends(require_role([UserRole.LOCATEUR, UserRole.EMPLOYEE]))
+):
+    """Update a contract"""
+    tenant_id = get_tenant_id(current_user)
+    existing = await db.contracts.find_one({"id": contract_id, "tenant_id": tenant_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    
+    if existing.get('signed'):
+        raise HTTPException(status_code=400, detail="Cannot modify a signed contract")
+    
+    update_data = contract_update.model_dump()
+    update_data['start_date'] = update_data['start_date'].isoformat() if hasattr(update_data['start_date'], 'isoformat') else update_data['start_date']
+    update_data['end_date'] = update_data['end_date'].isoformat() if hasattr(update_data['end_date'], 'isoformat') else update_data['end_date']
+    
+    await db.contracts.update_one(
+        {"id": contract_id},
+        {"$set": update_data}
+    )
+    
+    updated = await db.contracts.find_one({"id": contract_id}, {"_id": 0})
+    for date_field in ['created_at', 'start_date', 'end_date', 'signed_at']:
+        if updated.get(date_field) and isinstance(updated[date_field], str):
+            updated[date_field] = datetime.fromisoformat(updated[date_field])
+    
+    return Contract(**updated)
+
+
+@router.delete("/{contract_id}")
+async def delete_contract(
+    contract_id: str,
+    current_user: User = Depends(require_role([UserRole.LOCATEUR]))
+):
+    """Delete a contract (Locateur only)"""
+    tenant_id = get_tenant_id(current_user)
+    existing = await db.contracts.find_one({"id": contract_id, "tenant_id": tenant_id}, {"_id": 0})
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    
+    # If contract was active, set vehicle back to available
+    if existing.get('status') == 'active' and existing.get('vehicle_id'):
+        await db.vehicles.update_one(
+            {"id": existing['vehicle_id']},
+            {"$set": {"status": "available"}}
+        )
+    
+    result = await db.contracts.delete_one({"id": contract_id, "tenant_id": tenant_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    
+    return {"message": "Contract deleted successfully"}
