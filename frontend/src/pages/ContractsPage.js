@@ -156,6 +156,7 @@ const ContractsPage = () => {
       insurance_fee: 0,
       additional_fees: 0
     });
+    setEditingContract(null);
   };
   
   const handleVehicleSelect = (vehicleId) => {
