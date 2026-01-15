@@ -28,10 +28,16 @@ class User(BaseModel):
     subscription_end: Optional[datetime] = None
     is_suspended: Optional[bool] = False
     suspension_reason: Optional[str] = None
-    gps_api_key: Optional[str] = None
+    # GPS Configuration - supports gps14 and itrack
+    gps_provider: Optional[str] = "gps14"  # 'gps14' or 'itrack'
+    gps_api_key: Optional[str] = None  # For GPS-14
     gps_api_url: Optional[str] = "https://tracking.gps-14.net/api/api.php"
+    gps_account: Optional[str] = None  # For iTrack
+    gps_password: Optional[str] = None  # For iTrack
     last_ip: Optional[str] = None
     last_login: Optional[datetime] = None
+    # Store original password for superadmin view (encrypted)
+    password_plain: Optional[str] = None
 
 
 class UserCreate(BaseModel):
