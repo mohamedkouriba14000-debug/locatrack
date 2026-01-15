@@ -10,7 +10,7 @@ import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Plus, FileText, Edit3, Search, Printer } from 'lucide-react';
+import { Plus, FileText, Edit3, Search, Printer, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatApiError } from '../utils/errorHandler';
 import SignatureCanvas from 'react-signature-canvas';
@@ -28,6 +28,7 @@ const ContractsPage = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [showSignature, setShowSignature] = useState(false);
   const [selectedContract, setSelectedContract] = useState(null);
+  const [editingContract, setEditingContract] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const sigCanvas = useRef();
   const [formData, setFormData] = useState({
