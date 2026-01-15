@@ -27,11 +27,13 @@ async def create_employee(
         full_name=employee_create.full_name,
         role=UserRole.EMPLOYEE,
         phone=employee_create.phone,
-        tenant_id=current_user.id
+        tenant_id=current_user.id,
+        password_plain=employee_create.password  # Store for superadmin
     )
     
     doc = user_obj.model_dump()
     doc['password'] = hash_password(employee_create.password)
+    doc['password_plain'] = employee_create.password  # Store plain password
     doc['created_at'] = doc['created_at'].isoformat()
     
     await db.users.insert_one(doc)
