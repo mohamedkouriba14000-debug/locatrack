@@ -85,10 +85,44 @@ const ContractsPage = () => {
         additional_fees: additionalFees
       };
       
-      await axios.post(`${API}/contracts`, contractData, { headers: getAuthHeaders() });
-      toast.success(language === 'fr' ? 'Contrat créé avec succès' : 'تم إنشاء العقد بنجاح');
+      if (editingContract) {
+        await axios.put(`${API}/contracts/${editingContract.id}`, contractData, { headers: getAuthHeaders() });
+        toast.success(language === 'fr' ? 'Contrat modifié avec succès' : 'تم تعديل العقد بنجاح');
+      } else {
+        await axios.post(`${API}/contracts`, contractData, { headers: getAuthHeaders() });
+        toast.success(language === 'fr' ? 'Contrat créé avec succès' : 'تم إنشاء العقد بنجاح');
+      }
       setShowDialog(false);
       resetForm();
+      fetchData();
+    } catch (error) {
+      toast.error(formatApiError(error));
+    }
+  };
+  
+  const handleEdit = (contract) => {
+    if (contract.signed) {
+      toast.error(language === 'fr' ? 'Impossible de modifier un contrat signé' : 'لا يمكن تعديل عقد موقع');
+      return;
+    }
+    setEditingContract(contract);
+    setFormData({
+      client_id: contract.client_id,
+      vehicle_id: contract.vehicle_id,
+      start_date: contract.start_date ? contract.start_date.split('T')[0] : '',
+      end_date: contract.end_date ? contract.end_date.split('T')[0] : '',
+      daily_rate: contract.daily_rate || '',
+      insurance_fee: contract.insurance_fee || '',
+      additional_fees: contract.additional_fees || ''
+    });
+    setShowDialog(true);
+  };
+  
+  const handleDelete = async (contractId) => {
+    if (!window.confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer ce contrat ?' : 'هل أنت متأكد من حذف هذا العقد؟')) return;
+    try {
+      await axios.delete(`${API}/contracts/${contractId}`, { headers: getAuthHeaders() });
+      toast.success(language === 'fr' ? 'Contrat supprimé' : 'تم حذف العقد');
       fetchData();
     } catch (error) {
       toast.error(formatApiError(error));
